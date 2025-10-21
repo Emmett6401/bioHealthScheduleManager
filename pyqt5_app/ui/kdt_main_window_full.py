@@ -75,23 +75,25 @@ class KDTMainWindowFull(QMainWindow):
             QFrame {
                 background-color: #2962FF;
                 color: white;
-                padding: 20px;
+                padding: 10px 15px;
             }
         """)
         
         layout = QVBoxLayout()
+        layout.setSpacing(2)
+        layout.setContentsMargins(5, 5, 5, 5)
         
         # 타이틀
         title = QLabel("🏛️ 바이오헬스 융합인재 이노베이터")
         title.setStyleSheet("""
             color: white;
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
         """)
         layout.addWidget(title)
         
         subtitle = QLabel("for KDT - 교육 관리 시스템")
-        subtitle.setStyleSheet("color: white; font-size: 14px;")
+        subtitle.setStyleSheet("color: white; font-size: 11px;")
         layout.addWidget(subtitle)
         
         header.setLayout(layout)
