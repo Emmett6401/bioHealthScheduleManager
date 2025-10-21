@@ -316,6 +316,21 @@ class KDTMainWindowFull(QMainWindow):
         dialog = ProjectDialog(self)
         dialog.exec_()
         
+    def show_timetable_generate_dialog(self):
+        """시간표 자동 생성 다이얼로그 표시"""
+        dialog = TimetableGenerateDialog(self)
+        dialog.exec_()
+        
+    def show_timetable_view_dialog(self):
+        """시간표 조회/수정 다이얼로그 표시"""
+        dialog = TimetableViewDialog(self)
+        dialog.exec_()
+        
+    def show_pdf_report_dialog(self):
+        """PDF 보고서 생성 다이얼로그 표시"""
+        dialog = PDFReportDialog(self)
+        dialog.exec_()
+        
     def export_excel(self):
         """Excel 내보내기"""
         menu = QMenu(self)
