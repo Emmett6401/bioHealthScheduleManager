@@ -60,17 +60,22 @@ class SubjectDialog(QWidget):
         # 주강사
         form_layout.addWidget(QLabel("주강사:"), 1, 0)
         self.main_combo = QComboBox()
-        self.main_combo.setMinimumWidth(150)
+        self.main_combo.setMinimumWidth(200)
+        self.main_combo.setStyleSheet("QComboBox { font-family: 'Courier New', monospace; }")
         form_layout.addWidget(self.main_combo, 1, 1)
         
         # 보조강사
         form_layout.addWidget(QLabel("보조강사:"), 1, 2)
         self.assistant_combo = QComboBox()
+        self.assistant_combo.setMinimumWidth(200)
+        self.assistant_combo.setStyleSheet("QComboBox { font-family: 'Courier New', monospace; }")
         form_layout.addWidget(self.assistant_combo, 1, 3)
         
         # 예비강사
         form_layout.addWidget(QLabel("예비강사:"), 1, 4)
         self.reserve_combo = QComboBox()
+        self.reserve_combo.setMinimumWidth(200)
+        self.reserve_combo.setStyleSheet("QComboBox { font-family: 'Courier New', monospace; }")
         form_layout.addWidget(self.reserve_combo, 1, 5)
         
         form_group.setLayout(form_layout)
@@ -159,21 +164,29 @@ class SubjectDialog(QWidget):
             self.main_combo.clear()
             self.main_combo.addItem("선택 안함", None)
             for row in main_rows:
-                display_text = f"{row['name']} ({row['code']})"
+                # 이름을 10자로 맞춰서 정렬
+                name_padded = row['name'].ljust(10)
+                display_text = f"{name_padded} - 주강사"
                 self.main_combo.addItem(display_text, row['code'])
             
             # 보조강사 콤보박스
             self.assistant_combo.clear()
             self.assistant_combo.addItem("선택 안함", None)
             for row in assistant_rows:
-                display_text = f"{row['name']} ({row['code']})"
+                # 이름을 10자로 맞춰서 정렬
+                name_padded = row['name'].ljust(10)
+                display_text = f"{name_padded} - 보조강사"
                 self.assistant_combo.addItem(display_text, row['code'])
             
             # 예비강사 콤보박스
             self.reserve_combo.clear()
             self.reserve_combo.addItem("선택 안함", None)
             for row in reserve_rows:
-                display_text = f"{row['name']} ({row['code']})"
+                # 이름을 10자로 맞춰서 정렬
+                name_padded = row['name'].ljust(10)
+                # type에 따라 역할 표시
+                role = "주강사" if row['type'] == '1' else "멘토"
+                display_text = f"{name_padded} - {role}"
                 self.reserve_combo.addItem(display_text, row['code'])
                 
         except Exception as e:
