@@ -6,7 +6,7 @@
 from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLineEdit, QLabel,
                              QMessageBox, QHeaderView, QGroupBox, QDateEdit,
-                             QCheckBox, QGridLayout)
+                             QCheckBox, QGridLayout, QSpinBox)
 from PyQt5.QtCore import Qt, QDate
 import sys
 import os
@@ -56,14 +56,29 @@ class HolidayDialog(QWidget):
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
         
-        # 버튼 그룹
-        btn_layout = QHBoxLayout()
+        # 자동 입력 그룹
+        auto_group = QGroupBox("📅 법정공휴일 자동 입력")
+        auto_layout = QHBoxLayout()
         
-        self.auto_btn = QPushButton("법정공휴일 자동 입력")
+        auto_layout.addWidget(QLabel("년도:"))
+        self.year_spinner = QSpinBox()
+        self.year_spinner.setRange(2020, 2030)
+        self.year_spinner.setValue(datetime.now().year)
+        self.year_spinner.setSuffix(" 년")
+        self.year_spinner.setMinimumWidth(100)
+        auto_layout.addWidget(self.year_spinner)
+        
+        self.auto_btn = QPushButton("법정공휴일 자동 입력 (중복 제외)")
         self.auto_btn.setStyleSheet("background-color: #9C27B0; color: white; padding: 8px 20px;")
         self.auto_btn.clicked.connect(self.auto_insert_holidays)
-        btn_layout.addWidget(self.auto_btn)
+        auto_layout.addWidget(self.auto_btn)
         
+        auto_layout.addStretch()
+        auto_group.setLayout(auto_layout)
+        layout.addWidget(auto_group)
+        
+        # 버튼 그룹
+        btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         
         self.add_btn = QPushButton("추가")
@@ -104,48 +119,120 @@ class HolidayDialog(QWidget):
         self.setLayout(layout)
         
     def auto_insert_holidays(self):
-        """법정공휴일 자동 입력"""
+        """법정공휴일 자동 입력 (연도 선택 가능)"""
+        selected_year = self.year_spinner.value()
+        
         reply = QMessageBox.question(self, "확인", 
-                                     "2025년 법정공휴일을 자동으로 입력하시겠습니까?",
+                                     f"{selected_year}년 법정공휴일을 자동으로 입력하시겠습니까?\n"
+                                     "(이미 등록된 날짜는 건너뜁니다)",
                                      QMessageBox.Yes | QMessageBox.No)
         
         if reply == QMessageBox.Yes:
             try:
-                # 2025년 한국 법정공휴일
-                holidays = [
-                    ('2025-01-01', '신정', True),
-                    ('2025-01-28', '설날 연휴', True),
-                    ('2025-01-29', '설날', True),
-                    ('2025-01-30', '설날 연휴', True),
-                    ('2025-03-01', '삼일절', True),
-                    ('2025-03-03', '대체공휴일(삼일절)', True),
-                    ('2025-05-05', '어린이날', True),
-                    ('2025-05-06', '대체공휴일(어린이날)', True),
-                    ('2025-06-06', '현충일', True),
-                    ('2025-08-15', '광복절', True),
-                    ('2025-10-03', '개천절', True),
-                    ('2025-10-05', '추석 연휴', True),
-                    ('2025-10-06', '추석', True),
-                    ('2025-10-07', '추석 연휴', True),
-                    ('2025-10-08', '대체공휴일(추석)', True),
-                    ('2025-10-09', '한글날', True),
-                    ('2025-12-25', '성탄절', True),
-                ]
+                # 연도별 한국 법정공휴일 데이터
+                holidays_data = self.get_holidays_by_year(selected_year)
+                
+                if not holidays_data:
+                    QMessageBox.warning(self, "경고", f"{selected_year}년 공휴일 데이터가 없습니다.\n2025년 데이터만 지원됩니다.")
+                    return
+                
+                # 기존 공휴일 조회 (중복 확인용)
+                existing_query = "SELECT holiday_date FROM holidays WHERE YEAR(holiday_date) = %s"
+                existing_holidays = self.db.fetch_all(existing_query, (selected_year,))
+                existing_dates = set([row['holiday_date'] for row in existing_holidays])
                 
                 inserted = 0
-                for date, name, is_legal in holidays:
+                skipped = 0
+                
+                for date_str, name, is_legal in holidays_data:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+                    
+                    # 중복 체크
+                    if date_obj in existing_dates:
+                        skipped += 1
+                        continue
+                    
+                    # 새로운 공휴일 추가
                     query = """
-                        INSERT IGNORE INTO holidays (holiday_date, name, is_legal) 
+                        INSERT INTO holidays (holiday_date, name, is_legal) 
                         VALUES (%s, %s, %s)
                     """
-                    if self.db.execute_query(query, (date, name, is_legal)):
+                    if self.db.execute_query(query, (date_str, name, is_legal)):
                         inserted += 1
                 
-                QMessageBox.information(self, "성공", f"{inserted}개의 법정공휴일이 입력되었습니다.")
+                result_msg = f"✅ {inserted}개의 법정공휴일이 등록되었습니다."
+                if skipped > 0:
+                    result_msg += f"\n⚠️ {skipped}개는 이미 등록되어 건너뛰었습니다."
+                
+                QMessageBox.information(self, "완료", result_msg)
                 self.load_data()
                 
             except Exception as e:
                 QMessageBox.critical(self, "오류", f"자동 입력 실패: {str(e)}")
+    
+    def get_holidays_by_year(self, year):
+        """연도별 법정공휴일 데이터 반환"""
+        if year == 2025:
+            return [
+                ('2025-01-01', '신정', True),
+                ('2025-01-28', '설날 연휴', True),
+                ('2025-01-29', '설날', True),
+                ('2025-01-30', '설날 연휴', True),
+                ('2025-03-01', '삼일절', True),
+                ('2025-03-03', '대체공휴일(삼일절)', True),
+                ('2025-05-05', '어린이날', True),
+                ('2025-05-06', '대체공휴일(어린이날)', True),
+                ('2025-06-06', '현충일', True),
+                ('2025-08-15', '광복절', True),
+                ('2025-10-03', '개천절', True),
+                ('2025-10-05', '추석 연휴', True),
+                ('2025-10-06', '추석', True),
+                ('2025-10-07', '추석 연휴', True),
+                ('2025-10-08', '대체공휴일(추석)', True),
+                ('2025-10-09', '한글날', True),
+                ('2025-12-25', '성탄절', True),
+            ]
+        elif year == 2026:
+            return [
+                ('2026-01-01', '신정', True),
+                ('2026-02-16', '설날 연휴', True),
+                ('2026-02-17', '설날', True),
+                ('2026-02-18', '설날 연휴', True),
+                ('2026-03-01', '삼일절', True),
+                ('2026-05-05', '어린이날', True),
+                ('2026-05-25', '석가탄신일', True),
+                ('2026-06-06', '현충일', True),
+                ('2026-08-15', '광복절', True),
+                ('2026-09-24', '추석 연휴', True),
+                ('2026-09-25', '추석', True),
+                ('2026-09-26', '추석 연휴', True),
+                ('2026-10-03', '개천절', True),
+                ('2026-10-09', '한글날', True),
+                ('2026-12-25', '성탄절', True),
+            ]
+        elif year == 2024:
+            return [
+                ('2024-01-01', '신정', True),
+                ('2024-02-09', '설날 연휴', True),
+                ('2024-02-10', '설날', True),
+                ('2024-02-11', '설날 연휴', True),
+                ('2024-02-12', '대체공휴일(설날)', True),
+                ('2024-03-01', '삼일절', True),
+                ('2024-04-10', '제22대 국회의원 선거일', True),
+                ('2024-05-05', '어린이날', True),
+                ('2024-05-06', '대체공휴일(어린이날)', True),
+                ('2024-05-15', '석가탄신일', True),
+                ('2024-06-06', '현충일', True),
+                ('2024-08-15', '광복절', True),
+                ('2024-09-16', '추석 연휴', True),
+                ('2024-09-17', '추석', True),
+                ('2024-09-18', '추석 연휴', True),
+                ('2024-10-03', '개천절', True),
+                ('2024-10-09', '한글날', True),
+                ('2024-12-25', '성탄절', True),
+            ]
+        else:
+            return None
         
     def load_data(self):
         """데이터 로드"""
