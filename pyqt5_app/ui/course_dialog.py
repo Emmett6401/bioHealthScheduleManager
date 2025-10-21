@@ -349,14 +349,22 @@ class CourseDialog(QWidget):
         self.location_input.setMaximumHeight(28)
         form_layout.addWidget(self.location_input, 1, 3)
         
+        # 제외일 세부 정보 (주말/공휴일)
+        excluded_detail_label = QLabel("제외일:")
+        excluded_detail_label.setStyleSheet("font-size: 11px;")
+        form_layout.addWidget(excluded_detail_label, 2, 0)
+        self.excluded_detail_label = QLabel("주말: 0일, 공휴일: 0일")
+        self.excluded_detail_label.setStyleSheet("font-size: 11px; color: #F44336; font-weight: bold;")
+        form_layout.addWidget(self.excluded_detail_label, 2, 1, 1, 3)
+        
         # 특이사항
         notes_label = QLabel("특이사항:")
         notes_label.setStyleSheet("font-size: 11px;")
-        form_layout.addWidget(notes_label, 2, 0)
+        form_layout.addWidget(notes_label, 3, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
         self.notes_input.setMaximumHeight(50)
-        form_layout.addWidget(self.notes_input, 2, 1, 1, 3)
+        form_layout.addWidget(self.notes_input, 3, 1, 1, 3)
         
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
@@ -459,10 +467,27 @@ class CourseDialog(QWidget):
         total_work_days = lecture_days + project_days + internship_days
         excluded_days = total_calendar_days - total_work_days
         
+        # 주말과 공휴일 구분 계산
+        weekend_count = 0
+        holiday_count = 0
+        current = start_date
+        
+        while current <= internship_end:
+            # 주말 체크 (토요일=5, 일요일=6)
+            if current.weekday() >= 5:
+                weekend_count += 1
+            # 공휴일 체크 (주말이 아닌 날 중에서)
+            elif current in holidays:
+                holiday_count += 1
+            current += timedelta(days=1)
+        
         # 라벨 업데이트
         self.total_days_label.setText(f"{total_calendar_days}일")
         self.workdays_label.setText(f"{total_work_days}일 (600시간)")
         self.excluded_days_label.setText(f"{excluded_days}일")
+        
+        # 제외일 세부 정보 업데이트 (기본 정보 섹션)
+        self.excluded_detail_label.setText(f"주말: {weekend_count}일, 공휴일: {holiday_count}일")
     
     def get_holidays(self):
         """공휴일 목록 조회"""
@@ -525,24 +550,34 @@ class CourseDialog(QWidget):
                 self.table.setItem(row_position, 0, QTableWidgetItem(row['code'] or ''))
                 self.table.setItem(row_position, 1, QTableWidgetItem(row['name'] or ''))
                 
-                # 시작일
-                start_date = row['start_date'].strftime("%Y-%m-%d") if row.get('start_date') else ''
+                # 시작일 - None 체크 개선
+                start_date = ''
+                if row.get('start_date') and row['start_date'] is not None:
+                    start_date = row['start_date'].strftime("%Y-%m-%d")
                 self.table.setItem(row_position, 2, QTableWidgetItem(start_date))
                 
-                # 강의 종료일
-                lecture_end = row['lecture_end_date'].strftime("%m-%d") if row.get('lecture_end_date') else ''
+                # 강의 종료일 - None 체크 개선
+                lecture_end = ''
+                if row.get('lecture_end_date') and row['lecture_end_date'] is not None:
+                    lecture_end = row['lecture_end_date'].strftime("%m-%d")
                 self.table.setItem(row_position, 3, QTableWidgetItem(lecture_end))
                 
-                # 프로젝트 종료일
-                project_end = row['project_end_date'].strftime("%m-%d") if row.get('project_end_date') else ''
+                # 프로젝트 종료일 - None 체크 개선
+                project_end = ''
+                if row.get('project_end_date') and row['project_end_date'] is not None:
+                    project_end = row['project_end_date'].strftime("%m-%d")
                 self.table.setItem(row_position, 4, QTableWidgetItem(project_end))
                 
-                # 인턴쉽 종료일
-                internship_end = row['internship_end_date'].strftime("%m-%d") if row.get('internship_end_date') else ''
+                # 인턴쉽 종료일 - None 체크 개선
+                internship_end = ''
+                if row.get('internship_end_date') and row['internship_end_date'] is not None:
+                    internship_end = row['internship_end_date'].strftime("%m-%d")
                 self.table.setItem(row_position, 5, QTableWidgetItem(internship_end))
                 
-                # 총 기간
-                total_days = f"{row['total_days']}일" if row.get('total_days') else ''
+                # 총 기간 - None 체크 개선
+                total_days = ''
+                if row.get('total_days') and row['total_days'] is not None:
+                    total_days = f"{row['total_days']}일"
                 self.table.setItem(row_position, 6, QTableWidgetItem(total_days))
                 
                 # 인원
@@ -571,7 +606,7 @@ class CourseDialog(QWidget):
             self.name_input.setText(result['name'])
             
             # 시작일 설정
-            if result.get('start_date'):
+            if result.get('start_date') and result['start_date'] is not None:
                 q_date = QDate(result['start_date'].year, result['start_date'].month, result['start_date'].day)
                 self.start_date.setDate(q_date)
             
@@ -582,15 +617,56 @@ class CourseDialog(QWidget):
             self.location_input.setText(result['location'] or '')
             self.notes_input.setText(result['notes'] or '')
             
-            # 계산된 날짜들 표시
-            if result.get('lecture_end_date'):
+            # 계산된 날짜들 표시 - None 체크 개선
+            if result.get('lecture_end_date') and result['lecture_end_date'] is not None:
                 self.lecture_end_date.setText(result['lecture_end_date'].strftime("%Y-%m-%d"))
-            if result.get('project_end_date'):
+            else:
+                self.lecture_end_date.clear()
+                
+            if result.get('project_end_date') and result['project_end_date'] is not None:
                 self.project_end_date.setText(result['project_end_date'].strftime("%Y-%m-%d"))
-            if result.get('internship_end_date'):
+            else:
+                self.project_end_date.clear()
+                
+            if result.get('internship_end_date') and result['internship_end_date'] is not None:
                 self.internship_end_date.setText(result['internship_end_date'].strftime("%Y-%m-%d"))
-            if result.get('final_end_date'):
+            else:
+                self.internship_end_date.clear()
+                
+            if result.get('final_end_date') and result['final_end_date'] is not None:
                 self.final_end_date.setText(result['final_end_date'].strftime("%Y-%m-%d"))
+            else:
+                self.final_end_date.clear()
+            
+            # 계산 결과 업데이트
+            if result.get('total_days') and result['total_days'] is not None:
+                lecture_days = (result['lecture_hours'] + 7) // 8
+                project_days = (result['project_hours'] + 7) // 8
+                internship_days = (result['internship_hours'] + 7) // 8
+                total_work_days = lecture_days + project_days + internship_days
+                excluded_days = result['total_days'] - total_work_days
+                
+                self.total_days_label.setText(f"{result['total_days']}일")
+                self.workdays_label.setText(f"{total_work_days}일 (600시간)")
+                self.excluded_days_label.setText(f"{excluded_days}일")
+                
+                # 주말과 공휴일 구분 계산
+                if result.get('start_date') and result.get('internship_end_date'):
+                    holidays = self.get_holidays()
+                    weekend_count = 0
+                    holiday_count = 0
+                    current = result['start_date']
+                    
+                    while current <= result['internship_end_date']:
+                        if current.weekday() >= 5:
+                            weekend_count += 1
+                        elif current in holidays:
+                            holiday_count += 1
+                        current += timedelta(days=1)
+                    
+                    self.excluded_detail_label.setText(f"주말: {weekend_count}일, 공휴일: {holiday_count}일")
+                else:
+                    self.excluded_detail_label.setText("주말: 0일, 공휴일: 0일")
         
     def add_course(self):
         """과정 추가"""
