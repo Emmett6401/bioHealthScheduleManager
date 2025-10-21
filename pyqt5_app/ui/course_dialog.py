@@ -89,12 +89,12 @@ class CourseDialog(QWidget):
             QFrame {
                 background-color: #E3F2FD;
                 border-radius: 8px;
-                padding: 15px;
+                padding: 8px;
             }
         """)
         lecture_card_layout = QVBoxLayout()
-        lecture_card_layout.setSpacing(8)
-        lecture_card_layout.setContentsMargins(12, 12, 12, 12)
+        lecture_card_layout.setSpacing(4)
+        lecture_card_layout.setContentsMargins(8, 8, 8, 8)
         
         lecture_title = QLabel("📘 1단계: 이론")
         lecture_title.setStyleSheet("font-weight: bold; font-size: 12px; color: #1976D2;")
@@ -106,7 +106,7 @@ class CourseDialog(QWidget):
         self.lecture_hours.setSuffix(" 시간")
         self.lecture_hours.valueChanged.connect(self.calculate_dates)
         self.lecture_hours.setStyleSheet("font-size: 12px; font-weight: bold;")
-        self.lecture_hours.setMinimumHeight(30)
+        self.lecture_hours.setMinimumHeight(24)
         lecture_card_layout.addWidget(self.lecture_hours)
         
         self.lecture_days_label = QLabel("약 33일")
@@ -127,12 +127,12 @@ class CourseDialog(QWidget):
             QFrame {
                 background-color: #E8F5E9;
                 border-radius: 8px;
-                padding: 15px;
+                padding: 8px;
             }
         """)
         project_card_layout = QVBoxLayout()
-        project_card_layout.setSpacing(8)
-        project_card_layout.setContentsMargins(12, 12, 12, 12)
+        project_card_layout.setSpacing(4)
+        project_card_layout.setContentsMargins(8, 8, 8, 8)
         
         project_title = QLabel("📗 2단계: 프로젝트")
         project_title.setStyleSheet("font-weight: bold; font-size: 12px; color: #388E3C;")
@@ -144,7 +144,7 @@ class CourseDialog(QWidget):
         self.project_hours.setSuffix(" 시간")
         self.project_hours.valueChanged.connect(self.calculate_dates)
         self.project_hours.setStyleSheet("font-size: 12px; font-weight: bold;")
-        self.project_hours.setMinimumHeight(30)
+        self.project_hours.setMinimumHeight(24)
         project_card_layout.addWidget(self.project_hours)
         
         self.project_days_label = QLabel("약 28일")
@@ -165,12 +165,12 @@ class CourseDialog(QWidget):
             QFrame {
                 background-color: #FFF3E0;
                 border-radius: 8px;
-                padding: 15px;
+                padding: 8px;
             }
         """)
         internship_card_layout = QVBoxLayout()
-        internship_card_layout.setSpacing(8)
-        internship_card_layout.setContentsMargins(12, 12, 12, 12)
+        internship_card_layout.setSpacing(4)
+        internship_card_layout.setContentsMargins(8, 8, 8, 8)
         
         internship_title = QLabel("📙 3단계: 인턴십")
         internship_title.setStyleSheet("font-weight: bold; font-size: 12px; color: #F57C00;")
@@ -182,7 +182,7 @@ class CourseDialog(QWidget):
         self.internship_hours.setSuffix(" 시간")
         self.internship_hours.valueChanged.connect(self.calculate_dates)
         self.internship_hours.setStyleSheet("font-size: 12px; font-weight: bold;")
-        self.internship_hours.setMinimumHeight(30)
+        self.internship_hours.setMinimumHeight(24)
         internship_card_layout.addWidget(self.internship_hours)
         
         self.internship_days_label = QLabel("약 15일")
