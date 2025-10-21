@@ -207,9 +207,15 @@ class SubjectDialog(QWidget):
                 self.table.setItem(row_position, 0, QTableWidgetItem(row['code'] or ''))
                 self.table.setItem(row_position, 1, QTableWidgetItem(row['name'] or ''))
                 self.table.setItem(row_position, 2, QTableWidgetItem(str(row['hours']) + ' 시간'))
-                self.table.setItem(row_position, 3, QTableWidgetItem(row['main_name'] or '-'))
-                self.table.setItem(row_position, 4, QTableWidgetItem(row['assistant_name'] or '-'))
-                self.table.setItem(row_position, 5, QTableWidgetItem(row['reserve_name'] or '-'))
+                
+                # 강사 이름 뒤에 구분 추가
+                main_name = f"{row['main_name']}-주강사" if row['main_name'] else '-'
+                assistant_name = f"{row['assistant_name']}-보조강사" if row['assistant_name'] else '-'
+                reserve_name = f"{row['reserve_name']}-예비강사" if row['reserve_name'] else '-'
+                
+                self.table.setItem(row_position, 3, QTableWidgetItem(main_name))
+                self.table.setItem(row_position, 4, QTableWidgetItem(assistant_name))
+                self.table.setItem(row_position, 5, QTableWidgetItem(reserve_name))
                 
         except Exception as e:
             QMessageBox.critical(self, "오류", f"데이터 로드 실패: {str(e)}")
