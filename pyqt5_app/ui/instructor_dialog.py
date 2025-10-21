@@ -3,7 +3,7 @@
 강사 관리 다이얼로그
 """
 
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
+from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLineEdit, QLabel,
                              QComboBox, QMessageBox, QHeaderView, QGroupBox,
                              QGridLayout)
@@ -16,8 +16,8 @@ from database.db_manager import DatabaseManager
 from config_db import CODE_PREFIX
 
 
-class InstructorDialog(QDialog):
-    """강사 관리 다이얼로그"""
+class InstructorDialog(QWidget):
+    """강사 관리 위젯 (탭용)"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -27,8 +27,7 @@ class InstructorDialog(QDialog):
         
     def init_ui(self):
         """UI 초기화"""
-        self.setWindowTitle("강사 관리")
-        self.setGeometry(150, 150, 1000, 700)
+        # 탭으로 사용되므로 setWindowTitle, setGeometry 불필요
         
         layout = QVBoxLayout()
         
@@ -113,14 +112,7 @@ class InstructorDialog(QDialog):
         layout.addWidget(self.table)
         
         # 하단 버튼
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addStretch()
-        
-        close_btn = QPushButton("닫기")
-        close_btn.clicked.connect(self.close)
-        bottom_layout.addWidget(close_btn)
-        
-        layout.addLayout(bottom_layout)
+        # 하단 버튼 (탭으로 사용되므로 닫기 버튼 불필요)
         
         self.setLayout(layout)
         
@@ -284,8 +276,4 @@ class InstructorDialog(QDialog):
         self.major_input.clear()
         self.email_input.clear()
         self.type_combo.setCurrentIndex(0)
-    
-    def closeEvent(self, event):
-        """닫기 이벤트"""
-        self.db.disconnect()
-        event.accept()
+

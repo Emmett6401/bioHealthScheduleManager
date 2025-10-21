@@ -3,7 +3,7 @@
 강사 코드 관리 다이얼로그
 """
 
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
+from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLineEdit, QLabel,
                              QComboBox, QMessageBox, QHeaderView, QGroupBox)
 from PyQt5.QtCore import Qt
@@ -14,8 +14,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db_manager import DatabaseManager
 
 
-class InstructorCodeDialog(QDialog):
-    """강사 코드 관리 다이얼로그"""
+class InstructorCodeDialog(QWidget):
+    """강사 코드 관리 위젯 (탭용)"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -25,8 +25,7 @@ class InstructorCodeDialog(QDialog):
         
     def init_ui(self):
         """UI 초기화"""
-        self.setWindowTitle("강사 코드 관리")
-        self.setGeometry(200, 200, 800, 600)
+        # 탭으로 사용되므로 setWindowTitle, setGeometry 불필요
         
         layout = QVBoxLayout()
         
@@ -80,15 +79,7 @@ class InstructorCodeDialog(QDialog):
         self.table.cellClicked.connect(self.on_row_selected)
         layout.addWidget(self.table)
         
-        # 하단 버튼
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addStretch()
-        
-        close_btn = QPushButton("닫기")
-        close_btn.clicked.connect(self.close)
-        bottom_layout.addWidget(close_btn)
-        
-        layout.addLayout(bottom_layout)
+        # 하단 버튼 (탭으로 사용되므로 닫기 버튼 불필요)
         
         self.setLayout(layout)
         
@@ -212,8 +203,3 @@ class InstructorCodeDialog(QDialog):
         self.code_input.clear()
         self.name_input.clear()
         self.type_combo.setCurrentIndex(0)
-    
-    def closeEvent(self, event):
-        """닫기 이벤트"""
-        self.db.disconnect()
-        event.accept()

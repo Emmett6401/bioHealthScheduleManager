@@ -5,9 +5,9 @@ KDT 메인 윈도우 - 전체 기능 통합
 
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QMessageBox, QFrame,
-                             QToolBar, QAction, QFileDialog, QMenu)
+                             QToolBar, QAction, QFileDialog, QMenu, QTabWidget)
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 import sys
 import os
 
@@ -26,11 +26,13 @@ from ui.project_dialog import ProjectDialog
 
 
 class KDTMainWindowFull(QMainWindow):
-    """KDT 메인 윈도우 - 전체 기능"""
+    """KDT 메인 윈도우 - 전체 기능 (탭 기반)"""
     
     def __init__(self):
         super().__init__()
         self.db = DatabaseManager()
+        self.tab_widget = None  # 탭 위젯
+        self.open_tabs = {}  # 열린 탭 추적 {name: widget}
         self.init_ui()
         self.check_database()
         
@@ -199,10 +201,42 @@ class KDTMainWindowFull(QMainWindow):
         toolbar.addAction(QAction('📊 Excel 내보내기', self, triggered=self.export_excel))
         
     def create_content(self):
-        """컨텐츠 영역 생성"""
-        content = QFrame()
-        content.setStyleSheet("background-color: #f5f5f5; padding: 20px;")
+        """컨텐츠 영역 생성 - 탭 위젯"""
+        # 탭 위젯 생성
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setTabsClosable(True)
+        self.tab_widget.setMovable(True)
+        self.tab_widget.tabCloseRequested.connect(self.close_tab)
+        self.tab_widget.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #ddd;
+                background-color: white;
+            }
+            QTabBar::tab {
+                background-color: #f5f5f5;
+                border: 1px solid #ddd;
+                padding: 10px 20px;
+                margin-right: 2px;
+            }
+            QTabBar::tab:selected {
+                background-color: white;
+                border-bottom-color: white;
+            }
+            QTabBar::tab:hover {
+                background-color: #e8e8e8;
+            }
+        """)
         
+        # 홈 탭 추가
+        home_widget = self.create_home_widget()
+        self.tab_widget.addTab(home_widget, "🏠 홈")
+        self.tab_widget.tabBar().setTabButton(0, self.tab_widget.tabBar().RightSide, None)  # 홈 탭은 닫기 버튼 없음
+        
+        return self.tab_widget
+    
+    def create_home_widget(self):
+        """홈 위젯 생성"""
+        home = QWidget()
         layout = QVBoxLayout()
         layout.setSpacing(15)
         
@@ -240,8 +274,8 @@ class KDTMainWindowFull(QMainWindow):
         layout.addLayout(buttons_layout)
         layout.addStretch()
         
-        content.setLayout(layout)
-        return content
+        home.setLayout(layout)
+        return home
         
     def create_feature_button(self, text, color, callback):
         """기능 버튼 생성"""
@@ -286,35 +320,64 @@ class KDTMainWindowFull(QMainWindow):
             else:
                 QMessageBox.critical(self, "오류", "데이터베이스 연결 실패")
     
+    def open_or_focus_tab(self, tab_name, widget_class, icon=""):
+        """탭이 이미 열려있으면 포커스, 없으면 새로 생성"""
+        # 이미 열린 탭이 있는지 확인
+        if tab_name in self.open_tabs:
+            # 해당 탭으로 전환
+            index = self.tab_widget.indexOf(self.open_tabs[tab_name])
+            self.tab_widget.setCurrentIndex(index)
+        else:
+            # 새 탭 생성
+            widget = widget_class(self)
+            self.tab_widget.addTab(widget, f"{icon} {tab_name}")
+            self.open_tabs[tab_name] = widget
+            self.tab_widget.setCurrentWidget(widget)
+    
+    def close_tab(self, index):
+        """탭 닫기"""
+        if index == 0:  # 홈 탭은 닫을 수 없음
+            return
+        
+        widget = self.tab_widget.widget(index)
+        tab_text = self.tab_widget.tabText(index)
+        
+        # open_tabs에서 제거
+        for name, w in list(self.open_tabs.items()):
+            if w == widget:
+                del self.open_tabs[name]
+                break
+        
+        # 위젯의 closeEvent 호출 (DB 연결 종료 등)
+        if hasattr(widget, 'db'):
+            widget.db.disconnect()
+        
+        self.tab_widget.removeTab(index)
+        widget.deleteLater()
+    
     def show_instructor_code_dialog(self):
-        """강사 코드 관리 다이얼로그 표시"""
-        dialog = InstructorCodeDialog(self)
-        dialog.exec_()
+        """강사 코드 관리 탭 표시"""
+        self.open_or_focus_tab("강사 코드 관리", InstructorCodeDialog, "👤")
         
     def show_instructor_dialog(self):
-        """강사 관리 다이얼로그 표시"""
-        dialog = InstructorDialog(self)
-        dialog.exec_()
+        """강사 관리 탭 표시"""
+        self.open_or_focus_tab("강사 관리", InstructorDialog, "👨‍🏫")
         
     def show_subject_dialog(self):
-        """교과목 관리 다이얼로그 표시"""
-        dialog = SubjectDialog(self)
-        dialog.exec_()
+        """교과목 관리 탭 표시"""
+        self.open_or_focus_tab("교과목 관리", SubjectDialog, "📚")
         
     def show_holiday_dialog(self):
-        """공휴일 관리 다이얼로그 표시"""
-        dialog = HolidayDialog(self)
-        dialog.exec_()
+        """공휴일 관리 탭 표시"""
+        self.open_or_focus_tab("공휴일 관리", HolidayDialog, "📅")
         
     def show_course_dialog(self):
-        """과정 관리 다이얼로그 표시"""
-        dialog = CourseDialog(self)
-        dialog.exec_()
+        """과정 관리 탭 표시"""
+        self.open_or_focus_tab("과정 관리", CourseDialog, "🎓")
         
     def show_project_dialog(self):
-        """프로젝트 관리 다이얼로그 표시"""
-        dialog = ProjectDialog(self)
-        dialog.exec_()
+        """프로젝트 관리 탭 표시"""
+        self.open_or_focus_tab("프로젝트 관리", ProjectDialog, "💼")
         
     def show_timetable_generate_dialog(self):
         """시간표 자동 생성 다이얼로그 표시"""
