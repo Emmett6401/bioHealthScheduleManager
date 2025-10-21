@@ -61,8 +61,8 @@ class KDTMainWindowFull(QMainWindow):
         header = self.create_header()
         layout.addWidget(header)
         
-        # 툴바 생성
-        self.create_toolbar()
+        # 메뉴바 생성
+        self.create_menu_bar()
         
         # 메인 컨텐츠
         content = self.create_content()
