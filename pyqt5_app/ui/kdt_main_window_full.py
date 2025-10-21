@@ -44,7 +44,7 @@ class KDTMainWindowFull(QMainWindow):
         
         # 전체 애플리케이션에 고딕 폰트 적용
         from PyQt5.QtGui import QFont
-        app_font = QFont("맑은 고딕", 11)
+        app_font = QFont("맑은 고딕", 10)
         self.setFont(app_font)
         
         # 중앙 위젯
@@ -93,14 +93,14 @@ class KDTMainWindowFull(QMainWindow):
         title = QLabel("🏛️ 바이오헬스 융합인재 이노베이터")
         title.setStyleSheet("""
             color: white;
-            font-size: 24px;
+            font-size: 16px;
             font-weight: bold;
             font-family: '맑은 고딕';
         """)
         layout.addWidget(title)
         
         subtitle = QLabel("for KDT - 교육 관리 시스템")
-        subtitle.setStyleSheet("color: white; font-size: 16px; font-family: '맑은 고딕';")
+        subtitle.setStyleSheet("color: white; font-size: 14px; font-family: '맑은 고딕';")
         layout.addWidget(subtitle)
         
         header.setLayout(layout)
@@ -251,7 +251,7 @@ class KDTMainWindowFull(QMainWindow):
         
         # 환영 메시지
         welcome = QLabel("🎓 KDT 교육 관리 시스템에 오신 것을 환영합니다!")
-        welcome.setStyleSheet("font-size: 18px; font-weight: bold; color: #333; padding: 20px;")
+        welcome.setStyleSheet("font-size: 14px; font-weight: bold; color: #333; padding: 20px;")
         welcome.setAlignment(Qt.AlignCenter)
         layout.addWidget(welcome)
         
@@ -296,7 +296,7 @@ class KDTMainWindowFull(QMainWindow):
                 border: none;
                 padding: 30px;
                 border-radius: 10px;
-                font-size: 16px;
+                font-size: 13px;
                 font-weight: bold;
             }}
             QPushButton:hover {{
