@@ -297,10 +297,31 @@ class CourseDialog(QWidget):
         self.excluded_days_label = QLabel("5일")
         self.excluded_days_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #F44336;")
         excluded_layout.addWidget(self.excluded_days_label)
+        
+        # 제외일 세부 정보 (주말/공휴일)
+        self.excluded_detail_label = QLabel("주말: 0일/공휴일: 0일")
+        self.excluded_detail_label.setStyleSheet("font-size: 9px; color: #999;")
+        excluded_layout.addWidget(self.excluded_detail_label)
+        
         calc_result_layout.addLayout(excluded_layout)
         
         calc_result_group.setLayout(calc_result_layout)
         layout.addWidget(calc_result_group)
+        
+        # 공휴일 목록 표시
+        holiday_list_group = QGroupBox("🎉 과정 기간 내 공휴일")
+        holiday_list_group.setStyleSheet("QGroupBox { font-size: 10px; font-weight: bold; padding-top: 5px; margin-top: 5px; }")
+        holiday_list_layout = QVBoxLayout()
+        holiday_list_layout.setSpacing(3)
+        holiday_list_layout.setContentsMargins(5, 5, 5, 5)
+        
+        self.holiday_list_label = QLabel("공휴일이 없습니다.")
+        self.holiday_list_label.setStyleSheet("font-size: 10px; color: #666; padding: 5px;")
+        self.holiday_list_label.setWordWrap(True)
+        holiday_list_layout.addWidget(self.holiday_list_label)
+        
+        holiday_list_group.setLayout(holiday_list_layout)
+        layout.addWidget(holiday_list_group)
         
         # 기본 정보 입력 폼
         form_group = QGroupBox("📋 기본 정보")
@@ -349,22 +370,14 @@ class CourseDialog(QWidget):
         self.location_input.setMaximumHeight(28)
         form_layout.addWidget(self.location_input, 1, 3)
         
-        # 제외일 세부 정보 (주말/공휴일)
-        excluded_detail_label = QLabel("제외일:")
-        excluded_detail_label.setStyleSheet("font-size: 11px;")
-        form_layout.addWidget(excluded_detail_label, 2, 0)
-        self.excluded_detail_label = QLabel("주말: 0일, 공휴일: 0일")
-        self.excluded_detail_label.setStyleSheet("font-size: 11px; color: #F44336; font-weight: bold;")
-        form_layout.addWidget(self.excluded_detail_label, 2, 1, 1, 3)
-        
         # 특이사항
         notes_label = QLabel("특이사항:")
         notes_label.setStyleSheet("font-size: 11px;")
-        form_layout.addWidget(notes_label, 3, 0)
+        form_layout.addWidget(notes_label, 2, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
         self.notes_input.setMaximumHeight(50)
-        form_layout.addWidget(self.notes_input, 3, 1, 1, 3)
+        form_layout.addWidget(self.notes_input, 2, 1, 1, 3)
         
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
@@ -486,8 +499,11 @@ class CourseDialog(QWidget):
         self.workdays_label.setText(f"{total_work_days}일 (600시간)")
         self.excluded_days_label.setText(f"{excluded_days}일")
         
-        # 제외일 세부 정보 업데이트 (기본 정보 섹션)
-        self.excluded_detail_label.setText(f"주말: {weekend_count}일, 공휴일: {holiday_count}일")
+        # 제외일 세부 정보 업데이트 (계산 결과 섹션)
+        self.excluded_detail_label.setText(f"주말: {weekend_count}일/공휴일: {holiday_count}일")
+        
+        # 공휴일 목록 표시
+        self.update_holiday_list(start_date, internship_end, holidays)
     
     def get_holidays(self):
         """공휴일 목록 조회"""
@@ -531,6 +547,43 @@ class CourseDialog(QWidget):
             current_date += timedelta(days=1)
         
         return current_date
+    
+    def update_holiday_list(self, start_date, end_date, holidays):
+        """과정 기간 내 공휴일 목록 표시"""
+        try:
+            # 과정 기간 내 공휴일만 필터링
+            holidays_in_range = []
+            
+            # 공휴일 상세 정보 조회
+            if self.db.connect():
+                query = """
+                    SELECT holiday_date, name 
+                    FROM holidays 
+                    WHERE holiday_date BETWEEN %s AND %s
+                    ORDER BY holiday_date
+                """
+                rows = self.db.fetch_all(query, (start_date, end_date))
+                
+                for row in rows:
+                    holiday_date = row['holiday_date']
+                    # 주말이 아닌 공휴일만 표시
+                    if holiday_date.weekday() < 5:
+                        date_str = holiday_date.strftime("%m-%d")
+                        holidays_in_range.append(f"{date_str}({row['name']})")
+            
+            # 공휴일 목록 텍스트 생성
+            if holidays_in_range:
+                holiday_text = ", ".join(holidays_in_range)
+                self.holiday_list_label.setText(holiday_text)
+                self.holiday_list_label.setStyleSheet("font-size: 10px; color: #F44336; padding: 5px; font-weight: bold;")
+            else:
+                self.holiday_list_label.setText("공휴일이 없습니다.")
+                self.holiday_list_label.setStyleSheet("font-size: 10px; color: #666; padding: 5px;")
+                
+        except Exception as e:
+            print(f"공휴일 목록 표시 오류: {str(e)}")
+            self.holiday_list_label.setText("공휴일 정보를 불러올 수 없습니다.")
+            self.holiday_list_label.setStyleSheet("font-size: 10px; color: #666; padding: 5px;")
         
     def load_data(self):
         """데이터 로드"""
@@ -664,9 +717,14 @@ class CourseDialog(QWidget):
                             holiday_count += 1
                         current += timedelta(days=1)
                     
-                    self.excluded_detail_label.setText(f"주말: {weekend_count}일, 공휴일: {holiday_count}일")
+                    self.excluded_detail_label.setText(f"주말: {weekend_count}일/공휴일: {holiday_count}일")
+                    
+                    # 공휴일 목록 업데이트
+                    self.update_holiday_list(result['start_date'], result['internship_end_date'], holidays)
                 else:
-                    self.excluded_detail_label.setText("주말: 0일, 공휴일: 0일")
+                    self.excluded_detail_label.setText("주말: 0일/공휴일: 0일")
+                    self.holiday_list_label.setText("공휴일이 없습니다.")
+                    self.holiday_list_label.setStyleSheet("font-size: 10px; color: #666; padding: 5px;")
         
     def add_course(self):
         """과정 추가"""
