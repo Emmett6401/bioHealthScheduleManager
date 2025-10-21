@@ -39,7 +39,8 @@ class KDTMainWindowFull(QMainWindow):
     def init_ui(self):
         """UI 초기화"""
         self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
-        self.setGeometry(100, 50, WINDOW_WIDTH, WINDOW_HEIGHT)
+        # 풀스크린으로 시작
+        self.showMaximized()
         
         # 중앙 위젯
         central_widget = QWidget()

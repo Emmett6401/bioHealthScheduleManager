@@ -6,7 +6,7 @@
 from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLineEdit, QLabel,
                              QMessageBox, QHeaderView, QGroupBox, QGridLayout,
-                             QSpinBox, QTextEdit, QDateEdit, QFrame)
+                             QSpinBox, QTextEdit, QDateEdit, QFrame, QScrollArea)
 from PyQt5.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 import sys
@@ -30,29 +30,41 @@ class CourseDialog(QWidget):
         """UI 초기화"""
         # 탭으로 사용되므로 setWindowTitle, setGeometry 불필요
         
+        # 메인 레이아웃
+        main_layout = QVBoxLayout()
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 스크롤 영역 생성
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+        
+        # 스크롤 가능한 컨텐츠 위젯
+        scroll_content = QWidget()
         layout = QVBoxLayout()
-        layout.setSpacing(5)
-        layout.setContentsMargins(8, 5, 8, 8)
+        layout.setSpacing(10)
+        layout.setContentsMargins(15, 10, 15, 10)
         
         # 과정 시작일 입력
         date_group = QGroupBox("📅 과정 시작일")
-        date_group.setStyleSheet("QGroupBox { font-size: 10px; font-weight: bold; padding-top: 5px; margin-top: 5px; }")
+        date_group.setStyleSheet("QGroupBox { font-size: 13px; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
         date_layout = QHBoxLayout()
-        date_layout.setSpacing(6)
-        date_layout.setContentsMargins(5, 5, 5, 5)
+        date_layout.setSpacing(10)
+        date_layout.setContentsMargins(10, 8, 10, 8)
         
         self.start_date = QDateEdit()
         self.start_date.setCalendarPopup(True)
         self.start_date.setDate(QDate.currentDate())
         self.start_date.setDisplayFormat("yyyy-MM-dd")
         self.start_date.dateChanged.connect(self.calculate_dates)
-        self.start_date.setMinimumWidth(130)
-        self.start_date.setMaximumHeight(26)
-        self.start_date.setStyleSheet("font-size: 10px;")
+        self.start_date.setMinimumWidth(160)
+        self.start_date.setMinimumHeight(35)
+        self.start_date.setStyleSheet("font-size: 13px;")
         date_layout.addWidget(self.start_date)
         
         info_label = QLabel("ℹ️ 과정 기간 내 법정공휴일이 있다면 등록해주세요.")
-        info_label.setStyleSheet("color: #2196F3; font-size: 9px;")
+        info_label.setStyleSheet("color: #2196F3; font-size: 12px;")
         date_layout.addWidget(info_label)
         date_layout.addStretch()
         
@@ -61,26 +73,26 @@ class CourseDialog(QWidget):
         
         # 과정 과목 (총 600시간) - 카드 형식
         hours_group = QGroupBox("📚 과정 과목 (총 600시간)")
-        hours_group.setStyleSheet("QGroupBox { font-size: 10px; font-weight: bold; padding-top: 5px; margin-top: 5px; }")
+        hours_group.setStyleSheet("QGroupBox { font-size: 13px; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
         hours_layout = QHBoxLayout()
-        hours_layout.setSpacing(8)
-        hours_layout.setContentsMargins(5, 5, 5, 5)
+        hours_layout.setSpacing(12)
+        hours_layout.setContentsMargins(10, 8, 10, 8)
         
         # 강의 시수 카드
         lecture_card = QFrame()
         lecture_card.setStyleSheet("""
             QFrame {
                 background-color: #E3F2FD;
-                border-radius: 6px;
-                padding: 5px;
+                border-radius: 8px;
+                padding: 10px;
             }
         """)
         lecture_card_layout = QVBoxLayout()
-        lecture_card_layout.setSpacing(2)
-        lecture_card_layout.setContentsMargins(3, 3, 3, 3)
+        lecture_card_layout.setSpacing(5)
+        lecture_card_layout.setContentsMargins(8, 8, 8, 8)
         
         lecture_title = QLabel("📘 1단계: 이론")
-        lecture_title.setStyleSheet("font-weight: bold; font-size: 10px; color: #1976D2;")
+        lecture_title.setStyleSheet("font-weight: bold; font-size: 13px; color: #1976D2;")
         lecture_card_layout.addWidget(lecture_title)
         
         self.lecture_hours = QSpinBox()
@@ -88,12 +100,12 @@ class CourseDialog(QWidget):
         self.lecture_hours.setValue(260)
         self.lecture_hours.setSuffix(" 시간")
         self.lecture_hours.valueChanged.connect(self.calculate_dates)
-        self.lecture_hours.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.lecture_hours.setMaximumHeight(28)
+        self.lecture_hours.setStyleSheet("font-size: 18px; font-weight: bold;")
+        self.lecture_hours.setMinimumHeight(40)
         lecture_card_layout.addWidget(self.lecture_hours)
         
         self.lecture_days_label = QLabel("약 33일")
-        self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 9px;")
+        self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 12px;")
         lecture_card_layout.addWidget(self.lecture_days_label)
         
         lecture_card.setLayout(lecture_card_layout)
@@ -433,7 +445,14 @@ class CourseDialog(QWidget):
         # 하단 버튼
         # 하단 버튼 (탭으로 사용되므로 닫기 버튼 불필요)
         
-        self.setLayout(layout)
+        # 스크롤 컨텐츠 설정
+        scroll_content.setLayout(layout)
+        scroll_area.setWidget(scroll_content)
+        
+        # 메인 레이아웃에 스크롤 영역 추가
+        main_layout.addWidget(scroll_area)
+        
+        self.setLayout(main_layout)
     
     def calculate_dates(self):
         """과정 일정 자동 계산"""
