@@ -128,26 +128,60 @@ class SubjectDialog(QDialog):
         self.load_instructors()
         
     def load_instructors(self):
-        """강사 목록 로드"""
+        """강사 목록 로드 - 유형별 필터링"""
         if not self.db.connect():
             return
         
         try:
-            query = "SELECT code, name FROM instructors ORDER BY name"
-            rows = self.db.fetch_all(query)
+            # 주강사용: type='1' (주강사)만
+            query_main = """
+                SELECT i.code, i.name, ic.type
+                FROM instructors i
+                LEFT JOIN instructor_codes ic ON i.instructor_type = ic.code
+                WHERE ic.type = '1'
+                ORDER BY i.code
+            """
+            main_rows = self.db.fetch_all(query_main)
             
+            # 보조강사용: type='2' (보조강사)만
+            query_assistant = """
+                SELECT i.code, i.name, ic.type
+                FROM instructors i
+                LEFT JOIN instructor_codes ic ON i.instructor_type = ic.code
+                WHERE ic.type = '2'
+                ORDER BY i.code
+            """
+            assistant_rows = self.db.fetch_all(query_assistant)
+            
+            # 예비강사용: type='1' (주강사) OR type='3' (멘토)
+            query_reserve = """
+                SELECT i.code, i.name, ic.type
+                FROM instructors i
+                LEFT JOIN instructor_codes ic ON i.instructor_type = ic.code
+                WHERE ic.type IN ('1', '3')
+                ORDER BY i.code
+            """
+            reserve_rows = self.db.fetch_all(query_reserve)
+            
+            # 주강사 콤보박스
             self.main_combo.clear()
-            self.assistant_combo.clear()
-            self.reserve_combo.clear()
-            
             self.main_combo.addItem("선택 안함", None)
-            self.assistant_combo.addItem("선택 안함", None)
-            self.reserve_combo.addItem("선택 안함", None)
-            
-            for row in rows:
+            for row in main_rows:
                 display_text = f"{row['name']} ({row['code']})"
                 self.main_combo.addItem(display_text, row['code'])
+            
+            # 보조강사 콤보박스
+            self.assistant_combo.clear()
+            self.assistant_combo.addItem("선택 안함", None)
+            for row in assistant_rows:
+                display_text = f"{row['name']} ({row['code']})"
                 self.assistant_combo.addItem(display_text, row['code'])
+            
+            # 예비강사 콤보박스
+            self.reserve_combo.clear()
+            self.reserve_combo.addItem("선택 안함", None)
+            for row in reserve_rows:
+                display_text = f"{row['name']} ({row['code']})"
                 self.reserve_combo.addItem(display_text, row['code'])
                 
         except Exception as e:
