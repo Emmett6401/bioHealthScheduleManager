@@ -39,8 +39,10 @@ class KDTMainWindowFull(QMainWindow):
     def init_ui(self):
         """UI 초기화"""
         self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
-        # 풀스크린으로 시작
-        self.showMaximized()
+        
+        # 화면 크기 설정 (1280x800) 및 중앙 배치
+        self.resize(1280, 800)
+        self.center_on_screen()
         
         # 전체 애플리케이션에 고딕 폰트 적용
         from PyQt5.QtGui import QFont
@@ -73,6 +75,15 @@ class KDTMainWindowFull(QMainWindow):
         self.statusBar().showMessage('준비')
         
         central_widget.setLayout(layout)
+    
+    def center_on_screen(self):
+        """윈도우를 화면 중앙에 배치"""
+        from PyQt5.QtWidgets import QDesktopWidget
+        screen = QDesktopWidget().screenGeometry()
+        window = self.geometry()
+        x = (screen.width() - window.width()) // 2
+        y = (screen.height() - window.height()) // 2
+        self.move(x, y)
         
     def create_header(self):
         """헤더 생성"""

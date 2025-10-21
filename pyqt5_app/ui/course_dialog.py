@@ -113,6 +113,11 @@ class CourseDialog(QWidget):
         self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 12px;")
         lecture_card_layout.addWidget(self.lecture_days_label)
         
+        # 이론 종료일 (화살표로 표시)
+        self.lecture_end_date = QLabel("→ 2025-01-15 까지")
+        self.lecture_end_date.setStyleSheet("color: #1976D2; font-size: 11px; font-weight: bold; margin-top: 5px;")
+        lecture_card_layout.addWidget(self.lecture_end_date)
+        
         lecture_card.setLayout(lecture_card_layout)
         hours_layout.addWidget(lecture_card)
         
@@ -145,6 +150,11 @@ class CourseDialog(QWidget):
         self.project_days_label = QLabel("약 28일")
         self.project_days_label.setStyleSheet("color: #388E3C; font-size: 12px;")
         project_card_layout.addWidget(self.project_days_label)
+        
+        # 프로젝트 종료일 (화살표로 표시)
+        self.project_end_date = QLabel("→ 2025-02-28 까지")
+        self.project_end_date.setStyleSheet("color: #388E3C; font-size: 11px; font-weight: bold; margin-top: 5px;")
+        project_card_layout.addWidget(self.project_end_date)
         
         project_card.setLayout(project_card_layout)
         hours_layout.addWidget(project_card)
@@ -179,96 +189,16 @@ class CourseDialog(QWidget):
         self.internship_days_label.setStyleSheet("color: #F57C00; font-size: 12px;")
         internship_card_layout.addWidget(self.internship_days_label)
         
+        # 인턴십 종료일 (화살표로 표시, 최종 종료일)
+        self.internship_end_date = QLabel("→ 2025-03-21 까지 (최종)")
+        self.internship_end_date.setStyleSheet("color: #F57C00; font-size: 11px; font-weight: bold; margin-top: 5px;")
+        internship_card_layout.addWidget(self.internship_end_date)
+        
         internship_card.setLayout(internship_card_layout)
         hours_layout.addWidget(internship_card)
         
         hours_group.setLayout(hours_layout)
         layout.addWidget(hours_group)
-        
-        # 과정 종료일 - 카드 형식
-        result_group = QGroupBox("📅 과정 종료일")
-        result_group.setStyleSheet("QGroupBox { font-size: 12px; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
-        result_layout = QHBoxLayout()
-        result_layout.setSpacing(12)
-        result_layout.setContentsMargins(10, 8, 10, 8)
-        
-        # 이론 종료
-        lecture_end_card = QFrame()
-        lecture_end_card.setStyleSheet("""
-            QFrame {
-                background-color: #E3F2FD;
-                border-radius: 8px;
-                padding: 10px;
-            }
-        """)
-        lecture_end_layout = QVBoxLayout()
-        lecture_end_layout.setSpacing(5)
-        lecture_end_layout.setContentsMargins(8, 8, 8, 8)
-        lecture_end_title = QLabel("이론 종료")
-        lecture_end_title.setStyleSheet("font-size: 12px; color: #666;")
-        lecture_end_layout.addWidget(lecture_end_title)
-        
-        self.lecture_end_date = QLineEdit()
-        self.lecture_end_date.setReadOnly(True)
-        self.lecture_end_date.setStyleSheet("border: none; background: transparent; font-size: 12px; font-weight: bold;")
-        self.lecture_end_date.setMinimumHeight(30)
-        lecture_end_layout.addWidget(self.lecture_end_date)
-        
-        lecture_end_card.setLayout(lecture_end_layout)
-        result_layout.addWidget(lecture_end_card)
-        
-        # 프로젝트 종료
-        project_end_card = QFrame()
-        project_end_card.setStyleSheet("""
-            QFrame {
-                background-color: #E8F5E9;
-                border-radius: 8px;
-                padding: 10px;
-            }
-        """)
-        project_end_layout = QVBoxLayout()
-        project_end_layout.setSpacing(5)
-        project_end_layout.setContentsMargins(8, 8, 8, 8)
-        project_end_title = QLabel("프로젝트 종료")
-        project_end_title.setStyleSheet("font-size: 12px; color: #666;")
-        project_end_layout.addWidget(project_end_title)
-        
-        self.project_end_date = QLineEdit()
-        self.project_end_date.setReadOnly(True)
-        self.project_end_date.setStyleSheet("border: none; background: transparent; font-size: 12px; font-weight: bold;")
-        self.project_end_date.setMinimumHeight(30)
-        project_end_layout.addWidget(self.project_end_date)
-        
-        project_end_card.setLayout(project_end_layout)
-        result_layout.addWidget(project_end_card)
-        
-        # 인턴십 종료
-        internship_end_card = QFrame()
-        internship_end_card.setStyleSheet("""
-            QFrame {
-                background-color: #FFF3E0;
-                border-radius: 8px;
-                padding: 10px;
-            }
-        """)
-        internship_end_layout = QVBoxLayout()
-        internship_end_layout.setSpacing(5)
-        internship_end_layout.setContentsMargins(8, 8, 8, 8)
-        internship_end_title = QLabel("인턴십 종료 (최종)")
-        internship_end_title.setStyleSheet("font-size: 12px; color: #666;")
-        internship_end_layout.addWidget(internship_end_title)
-        
-        self.internship_end_date = QLineEdit()
-        self.internship_end_date.setReadOnly(True)
-        self.internship_end_date.setStyleSheet("border: none; background: transparent; font-size: 12px; font-weight: bold;")
-        self.internship_end_date.setMinimumHeight(30)
-        internship_end_layout.addWidget(self.internship_end_date)
-        
-        internship_end_card.setLayout(internship_end_layout)
-        result_layout.addWidget(internship_end_card)
-        
-        result_group.setLayout(result_layout)
-        layout.addWidget(result_group)
         
         # 과정 일정 계산 결과 - 압축 버전
         calc_result_group = QGroupBox("📊 교육 일정 계산 결과")
@@ -503,19 +433,19 @@ class CourseDialog(QWidget):
         
         # 강의 종료일 계산
         lecture_end = self.calculate_end_date(start_date, lecture_days, holidays)
-        self.lecture_end_date.setText(lecture_end.strftime("%Y-%m-%d"))
+        self.lecture_end_date.setText(f"→ {lecture_end.strftime('%Y-%m-%d')} 까지")
         
         # 프로젝트 종료일 계산 (강의 종료일 다음날부터 시작)
         project_start = lecture_end + timedelta(days=1)
         project_start = self.get_next_workday(project_start, holidays)
         project_end = self.calculate_end_date(project_start, project_days, holidays)
-        self.project_end_date.setText(project_end.strftime("%Y-%m-%d"))
+        self.project_end_date.setText(f"→ {project_end.strftime('%Y-%m-%d')} 까지")
         
         # 인턴쉽 종료일 계산 (프로젝트 종료일 다음날부터 시작)
         internship_start = project_end + timedelta(days=1)
         internship_start = self.get_next_workday(internship_start, holidays)
         internship_end = self.calculate_end_date(internship_start, internship_days, holidays)
-        self.internship_end_date.setText(internship_end.strftime("%Y-%m-%d"))
+        self.internship_end_date.setText(f"→ {internship_end.strftime('%Y-%m-%d')} 까지 (최종)")
         
         # 최종 종료일 (인턴쉽 종료일과 동일)
         self.final_end_date.setText(internship_end.strftime("%Y-%m-%d"))
