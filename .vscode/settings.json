@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/pyqt5_app"
+    ],
+    "terminal.integrated.cwd": "${workspaceFolder}/pyqt5_app",
+    "python.terminal.executeInFileDir": false,
+    "python.defaultInterpreterPath": "python"
+}

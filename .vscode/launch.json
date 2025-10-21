@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: KDT Main (Full)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pyqt5_app/main_kdt_full.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/pyqt5_app",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/pyqt5_app"
+            }
+        },
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "justMyCode": true
+        }
+    ]
+}
