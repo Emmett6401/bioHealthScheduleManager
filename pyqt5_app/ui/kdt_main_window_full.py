@@ -101,7 +101,7 @@ class KDTMainWindowFull(QMainWindow):
         layout.setContentsMargins(5, 5, 5, 5)
         
         # 타이틀
-        title = QLabel("🏛️ 바이오헬스 융합인재 이노베이터")
+        title = QLabel("🏛️ 바이오헬스 올인원테크 이노베이터")
         title.setStyleSheet("""
             color: white;
             font-size: 16px;

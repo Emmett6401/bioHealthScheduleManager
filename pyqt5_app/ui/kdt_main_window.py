@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-바이오헬스 융합인재 이노베이터 for KDT - 메인 윈도우
+바이오헬스 올인원테크 이노베이터 for KDT - 메인 윈도우
 """
 
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
@@ -80,7 +80,7 @@ class KDTMainWindow(QMainWindow):
         
     def init_ui(self):
         """UI 초기화"""
-        self.setWindowTitle("바이오헬스 융합인재 이노베이터 for KDT")
+        self.setWindowTitle("바이오헬스 올인원테크 이노베이터 for KDT")
         self.setGeometry(100, 50, 1400, 900)
         
         # 메인 위젯
@@ -160,7 +160,7 @@ class KDTMainWindow(QMainWindow):
         layout = QHBoxLayout()
         
         # 타이틀
-        title = QLabel("🏛️ 바이오헬스 융합인재 이노베이터\nfor KDT")
+        title = QLabel("🏛️ 바이오헬스 올인원테크 이노베이터\nfor KDT")
         title.setStyleSheet("""
             color: white;
             font-size: 16px;

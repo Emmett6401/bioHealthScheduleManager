@@ -14,7 +14,7 @@ DB_CONFIG = {
 }
 
 # 애플리케이션 설정
-APP_NAME = "바이오헬스 융합인재 이노베이터 for KDT"
+APP_NAME = "바이오헬스 올인원테크 이노베이터 for KDT"
 APP_VERSION = "2.0.0"
 WINDOW_WIDTH = 1400
 WINDOW_HEIGHT = 900
