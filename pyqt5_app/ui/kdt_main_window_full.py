@@ -42,6 +42,11 @@ class KDTMainWindowFull(QMainWindow):
         # 풀스크린으로 시작
         self.showMaximized()
         
+        # 전체 애플리케이션에 고딕 폰트 적용
+        from PyQt5.QtGui import QFont
+        app_font = QFont("맑은 고딕", 11)
+        self.setFont(app_font)
+        
         # 중앙 위젯
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -88,13 +93,14 @@ class KDTMainWindowFull(QMainWindow):
         title = QLabel("🏛️ 바이오헬스 융합인재 이노베이터")
         title.setStyleSheet("""
             color: white;
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
+            font-family: '맑은 고딕';
         """)
         layout.addWidget(title)
         
         subtitle = QLabel("for KDT - 교육 관리 시스템")
-        subtitle.setStyleSheet("color: white; font-size: 11px;")
+        subtitle.setStyleSheet("color: white; font-size: 16px; font-family: '맑은 고딕';")
         layout.addWidget(subtitle)
         
         header.setLayout(layout)
