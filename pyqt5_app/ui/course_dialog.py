@@ -627,26 +627,25 @@ class CourseDialog(QWidget):
             self.location_input.setText(result['location'] or '')
             self.notes_input.setText(result['notes'] or '')
             
-            # 계산된 날짜들 표시 - None 체크 개선
+            # 일수 라벨 업데이트 (종료일 포함)
+            lecture_days = (result['lecture_hours'] + 7) // 8
+            project_days = (result['project_hours'] + 7) // 8
+            internship_days = (result['internship_hours'] + 7) // 8
+            
             if result.get('lecture_end_date') and result['lecture_end_date'] is not None:
-                self.lecture_end_date.setText(result['lecture_end_date'].strftime("%Y-%m-%d"))
+                self.lecture_days_label.setText(f"약 {lecture_days}일 ({result['lecture_end_date'].strftime('%m-%d')} 까지)")
             else:
-                self.lecture_end_date.clear()
+                self.lecture_days_label.setText(f"약 {lecture_days}일")
                 
             if result.get('project_end_date') and result['project_end_date'] is not None:
-                self.project_end_date.setText(result['project_end_date'].strftime("%Y-%m-%d"))
+                self.project_days_label.setText(f"약 {project_days}일 ({result['project_end_date'].strftime('%m-%d')} 까지)")
             else:
-                self.project_end_date.clear()
+                self.project_days_label.setText(f"약 {project_days}일")
                 
             if result.get('internship_end_date') and result['internship_end_date'] is not None:
-                self.internship_end_date.setText(result['internship_end_date'].strftime("%Y-%m-%d"))
+                self.internship_days_label.setText(f"약 {internship_days}일 ({result['internship_end_date'].strftime('%m-%d')} 까지)")
             else:
-                self.internship_end_date.clear()
-                
-            if result.get('final_end_date') and result['final_end_date'] is not None:
-                self.final_end_date.setText(result['final_end_date'].strftime("%Y-%m-%d"))
-            else:
-                self.final_end_date.clear()
+                self.internship_days_label.setText(f"약 {internship_days}일")
             
             # 계산 결과 업데이트
             if result.get('total_days') and result['total_days'] is not None:
