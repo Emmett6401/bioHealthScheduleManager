@@ -110,13 +110,8 @@ class CourseDialog(QWidget):
         lecture_card_layout.addWidget(self.lecture_hours)
         
         self.lecture_days_label = QLabel("약 33일")
-        self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 8px;")
+        self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 11px; font-weight: bold;")
         lecture_card_layout.addWidget(self.lecture_days_label)
-        
-        # 이론 종료일 (화살표로 표시)
-        self.lecture_end_date = QLabel("→ 2025-01-15 까지")
-        self.lecture_end_date.setStyleSheet("color: #1976D2; font-size: 8px; font-weight: bold; margin-top: 0px;")
-        lecture_card_layout.addWidget(self.lecture_end_date)
         
         lecture_card.setLayout(lecture_card_layout)
         hours_layout.addWidget(lecture_card)
@@ -148,13 +143,8 @@ class CourseDialog(QWidget):
         project_card_layout.addWidget(self.project_hours)
         
         self.project_days_label = QLabel("약 28일")
-        self.project_days_label.setStyleSheet("color: #388E3C; font-size: 8px;")
+        self.project_days_label.setStyleSheet("color: #388E3C; font-size: 11px; font-weight: bold;")
         project_card_layout.addWidget(self.project_days_label)
-        
-        # 프로젝트 종료일 (화살표로 표시)
-        self.project_end_date = QLabel("→ 2025-02-28 까지")
-        self.project_end_date.setStyleSheet("color: #388E3C; font-size: 8px; font-weight: bold; margin-top: 0px;")
-        project_card_layout.addWidget(self.project_end_date)
         
         project_card.setLayout(project_card_layout)
         hours_layout.addWidget(project_card)
@@ -164,16 +154,16 @@ class CourseDialog(QWidget):
         internship_card.setStyleSheet("""
             QFrame {
                 background-color: #FFF3E0;
-                border-radius: 4px;
-                padding: 2px;
+                border-radius: 6px;
+                padding: 8px;
             }
         """)
         internship_card_layout = QVBoxLayout()
-        internship_card_layout.setSpacing(1)
-        internship_card_layout.setContentsMargins(4, 2, 4, 2)
+        internship_card_layout.setSpacing(3)
+        internship_card_layout.setContentsMargins(6, 6, 6, 6)
         
         internship_title = QLabel("📙 3단계: 인턴십")
-        internship_title.setStyleSheet("font-weight: bold; font-size: 9px; color: #F57C00;")
+        internship_title.setStyleSheet("font-weight: bold; font-size: 11px; color: #F57C00;")
         internship_card_layout.addWidget(internship_title)
         
         self.internship_hours = QSpinBox()
@@ -181,18 +171,13 @@ class CourseDialog(QWidget):
         self.internship_hours.setValue(120)
         self.internship_hours.setSuffix(" 시간")
         self.internship_hours.valueChanged.connect(self.calculate_dates)
-        self.internship_hours.setStyleSheet("font-size: 9px; font-weight: bold;")
-        self.internship_hours.setMinimumHeight(16)
+        self.internship_hours.setStyleSheet("font-size: 15px; font-weight: bold;")
+        self.internship_hours.setMinimumHeight(32)
         internship_card_layout.addWidget(self.internship_hours)
         
         self.internship_days_label = QLabel("약 15일")
-        self.internship_days_label.setStyleSheet("color: #F57C00; font-size: 8px;")
+        self.internship_days_label.setStyleSheet("color: #F57C00; font-size: 11px; font-weight: bold;")
         internship_card_layout.addWidget(self.internship_days_label)
-        
-        # 인턴십 종료일 (화살표로 표시, 최종 종료일)
-        self.internship_end_date = QLabel("→ 2025-03-21 까지 (최종)")
-        self.internship_end_date.setStyleSheet("color: #F57C00; font-size: 8px; font-weight: bold; margin-top: 0px;")
-        internship_card_layout.addWidget(self.internship_end_date)
         
         internship_card.setLayout(internship_card_layout)
         hours_layout.addWidget(internship_card)
@@ -423,29 +408,26 @@ class CourseDialog(QWidget):
         project_days = (project_hours + 7) // 8
         internship_days = (internship_hours + 7) // 8
         
-        # 일수 라벨 업데이트
-        self.lecture_days_label.setText(f"({lecture_days}일)")
-        self.project_days_label.setText(f"({project_days}일)")
-        self.internship_days_label.setText(f"({internship_days}일)")
-        
         # 공휴일 조회
         holidays = self.get_holidays()
         
         # 강의 종료일 계산
         lecture_end = self.calculate_end_date(start_date, lecture_days, holidays)
-        self.lecture_end_date.setText(f"→ {lecture_end.strftime('%Y-%m-%d')} 까지")
         
         # 프로젝트 종료일 계산 (강의 종료일 다음날부터 시작)
         project_start = lecture_end + timedelta(days=1)
         project_start = self.get_next_workday(project_start, holidays)
         project_end = self.calculate_end_date(project_start, project_days, holidays)
-        self.project_end_date.setText(f"→ {project_end.strftime('%Y-%m-%d')} 까지")
         
         # 인턴쉽 종료일 계산 (프로젝트 종료일 다음날부터 시작)
         internship_start = project_end + timedelta(days=1)
         internship_start = self.get_next_workday(internship_start, holidays)
         internship_end = self.calculate_end_date(internship_start, internship_days, holidays)
-        self.internship_end_date.setText(f"→ {internship_end.strftime('%Y-%m-%d')} 까지 (최종)")
+        
+        # 일수 라벨 업데이트 (종료일 포함)
+        self.lecture_days_label.setText(f"약 {lecture_days}일 ({lecture_end.strftime('%m-%d')} 까지)")
+        self.project_days_label.setText(f"약 {project_days}일 ({project_end.strftime('%m-%d')} 까지)")
+        self.internship_days_label.setText(f"약 {internship_days}일 ({internship_end.strftime('%m-%d')} 까지)")
         
         # 최종 종료일 (인턴쉽 종료일과 동일)
         self.final_end_date.setText(internship_end.strftime("%Y-%m-%d"))
