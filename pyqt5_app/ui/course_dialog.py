@@ -88,13 +88,13 @@ class CourseDialog(QWidget):
         lecture_card.setStyleSheet("""
             QFrame {
                 background-color: #E3F2FD;
-                border-radius: 4px;
-                padding: 2px;
+                border-radius: 6px;
+                padding: 8px;
             }
         """)
         lecture_card_layout = QVBoxLayout()
-        lecture_card_layout.setSpacing(1)
-        lecture_card_layout.setContentsMargins(4, 2, 4, 2)
+        lecture_card_layout.setSpacing(3)
+        lecture_card_layout.setContentsMargins(6, 6, 6, 6)
         
         lecture_title = QLabel("📘 1단계: 이론")
         lecture_title.setStyleSheet("font-weight: bold; font-size: 11pt; color: #1976D2;")
@@ -106,7 +106,7 @@ class CourseDialog(QWidget):
         self.lecture_hours.setSuffix(" 시간")
         self.lecture_hours.valueChanged.connect(self.calculate_dates)
         self.lecture_hours.setStyleSheet("font-size: 11pt; font-weight: bold;")
-        self.lecture_hours.setMinimumHeight(16)
+        self.lecture_hours.setMinimumHeight(32)
         lecture_card_layout.addWidget(self.lecture_hours)
         
         self.lecture_days_label = QLabel("약 33일")
@@ -121,13 +121,13 @@ class CourseDialog(QWidget):
         project_card.setStyleSheet("""
             QFrame {
                 background-color: #E8F5E9;
-                border-radius: 4px;
-                padding: 2px;
+                border-radius: 6px;
+                padding: 8px;
             }
         """)
         project_card_layout = QVBoxLayout()
-        project_card_layout.setSpacing(1)
-        project_card_layout.setContentsMargins(4, 2, 4, 2)
+        project_card_layout.setSpacing(3)
+        project_card_layout.setContentsMargins(6, 6, 6, 6)
         
         project_title = QLabel("📗 2단계: 프로젝트")
         project_title.setStyleSheet("font-weight: bold; font-size: 11pt; color: #388E3C;")
@@ -139,7 +139,7 @@ class CourseDialog(QWidget):
         self.project_hours.setSuffix(" 시간")
         self.project_hours.valueChanged.connect(self.calculate_dates)
         self.project_hours.setStyleSheet("font-size: 11pt; font-weight: bold;")
-        self.project_hours.setMinimumHeight(16)
+        self.project_hours.setMinimumHeight(32)
         project_card_layout.addWidget(self.project_hours)
         
         self.project_days_label = QLabel("약 28일")
