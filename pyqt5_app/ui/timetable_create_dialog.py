@@ -143,7 +143,16 @@ class TimetableCreateDialog(QWidget):
         self.timetable_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.timetable_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.timetable_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
-        self.timetable_table.setStyleSheet("font-size: 11pt;")
+        self.timetable_table.setStyleSheet("""
+            QTableWidget {
+                font-size: 11pt;
+                gridline-color: #CCCCCC;
+            }
+            QTableWidget::item {
+                border: 1px solid #CCCCCC;
+            }
+        """)
+        self.timetable_table.setShowGrid(True)
         self.timetable_table.cellClicked.connect(self.on_cell_clicked)
         
         scroll.setWidget(self.timetable_table)
@@ -556,6 +565,15 @@ class TimetableCreateDialog(QWidget):
         """시간표 테이블에 표시"""
         self.timetable_table.setRowCount(len(timetable))
         
+        # 주차별 파스텔 오렌지 색상 팔레트
+        week_colors = [
+            QColor(255, 229, 204),  # 연한 오렌지 1
+            QColor(255, 218, 185),  # 연한 오렌지 2
+            QColor(255, 239, 213),  # 연한 피치
+            QColor(255, 228, 196),  # 비스크
+            QColor(255, 235, 205),  # 블랜치드 아몬드
+        ]
+        
         # 과목별 누적 시수 계산
         subject_accumulated = {}
         
@@ -596,11 +614,26 @@ class TimetableCreateDialog(QWidget):
                     self.timetable_table.setSpan(week_start_row, 0, i - week_start_row, 1)
                 week_start_row = i
             
+            # 주차별 배경색 선택 (순환)
+            base_color = week_colors[(week_number - 1) % len(week_colors)]
+            
+            # 주차가 바뀌는 첫 행은 약간 더 진한 색으로 강조
+            is_week_start = (previous_week is None or week_number != previous_week)
+            if is_week_start:
+                # 첫 행은 약간 더 진한 색
+                week_bg_color = QColor(
+                    max(base_color.red() - 20, 0),
+                    max(base_color.green() - 20, 0),
+                    max(base_color.blue() - 20, 0)
+                )
+            else:
+                week_bg_color = base_color
+            
             # 주차 표시 (첫 번째 행에만 설정, 병합 후 자동으로 표시됨)
-            if previous_week is None or week_number != previous_week:
+            if is_week_start:
                 week_item = QTableWidgetItem(f"{week_number}주차")
                 week_item.setTextAlignment(Qt.AlignCenter)
-                week_item.setBackground(QBrush(QColor(200, 200, 200)))
+                week_item.setBackground(QBrush(base_color))
                 week_item.setFont(QFont("맑은 고딕", 11, QFont.Bold))
                 self.timetable_table.setItem(i, 0, week_item)
             
@@ -610,6 +643,7 @@ class TimetableCreateDialog(QWidget):
             date_str = entry['date'].strftime("%Y-%m-%d (%a)")
             date_item = QTableWidgetItem(date_str)
             date_item.setData(Qt.UserRole, entry)  # 데이터 저장
+            date_item.setBackground(QBrush(week_bg_color))
             self.timetable_table.setItem(i, 1, date_item)
             
             # 오전 과목 표시
@@ -677,6 +711,7 @@ class TimetableCreateDialog(QWidget):
             
             main_instructor_item = QTableWidgetItem(instructor_text)
             main_instructor_item.setTextAlignment(Qt.AlignCenter)
+            main_instructor_item.setBackground(QBrush(week_bg_color))
             self.timetable_table.setItem(i, 4, main_instructor_item)
             
             # 보조강사
@@ -694,6 +729,7 @@ class TimetableCreateDialog(QWidget):
             
             assistant_instructor_item = QTableWidgetItem(assist_text)
             assistant_instructor_item.setTextAlignment(Qt.AlignCenter)
+            assistant_instructor_item.setBackground(QBrush(week_bg_color))
             self.timetable_table.setItem(i, 5, assistant_instructor_item)
             
             # 예비강사
@@ -711,6 +747,7 @@ class TimetableCreateDialog(QWidget):
             
             reserve_instructor_item = QTableWidgetItem(reserve_text)
             reserve_instructor_item.setTextAlignment(Qt.AlignCenter)
+            reserve_instructor_item.setBackground(QBrush(week_bg_color))
             self.timetable_table.setItem(i, 6, reserve_instructor_item)
             
             # 진행도 표시 (오전 과목 기준)
@@ -724,6 +761,7 @@ class TimetableCreateDialog(QWidget):
             
             progress_item = QTableWidgetItem(f"{progress_percent:.1f}%")
             progress_item.setTextAlignment(Qt.AlignCenter)
+            progress_item.setBackground(QBrush(week_bg_color))
             self.timetable_table.setItem(i, 7, progress_item)
         
         # 마지막 주차 병합 처리
