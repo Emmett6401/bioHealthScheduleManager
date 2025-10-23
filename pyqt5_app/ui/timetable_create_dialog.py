@@ -564,6 +564,7 @@ class TimetableCreateDialog(QWidget):
             start_date = timetable[0]['date']
         
         previous_week = None
+        week_start_row = 0
         
         for i, entry in enumerate(timetable):
             am_subject = entry.get('am_subject', {})
@@ -588,21 +589,21 @@ class TimetableCreateDialog(QWidget):
             days_diff = (current_date - start_date).days
             week_number = (days_diff // 7) + 1
             
-            # 주차 표시
-            week_item = QTableWidgetItem(f"{week_number}주차")
-            week_item.setTextAlignment(Qt.AlignCenter)
-            
-            # 주차가 바뀔 때 배경색 변경으로 구분
+            # 주차가 바뀔 때 이전 주차 셀 병합
             if previous_week is not None and week_number != previous_week:
-                # 새로운 주차의 첫 번째 행 전체에 연한 회색 배경
-                week_separator_color = QColor(200, 200, 200)
-                week_item.setBackground(QBrush(week_separator_color))
-                week_item.setFont(QFont("맑은 고딕", 11, QFont.Bold))
-            else:
-                # 같은 주차 내에서는 더 연한 배경
-                week_item.setBackground(QBrush(QColor(245, 245, 245)))
+                # 이전 주차의 셀들을 병합
+                if i - week_start_row > 1:  # 2개 이상의 행이 있을 때만 병합
+                    self.timetable_table.setSpan(week_start_row, 0, i - week_start_row, 1)
+                week_start_row = i
             
-            self.timetable_table.setItem(i, 0, week_item)
+            # 주차 표시 (첫 번째 행에만 설정, 병합 후 자동으로 표시됨)
+            if previous_week is None or week_number != previous_week:
+                week_item = QTableWidgetItem(f"{week_number}주차")
+                week_item.setTextAlignment(Qt.AlignCenter)
+                week_item.setBackground(QBrush(QColor(200, 200, 200)))
+                week_item.setFont(QFont("맑은 고딕", 11, QFont.Bold))
+                self.timetable_table.setItem(i, 0, week_item)
+            
             previous_week = week_number
             
             # 날짜
@@ -724,6 +725,10 @@ class TimetableCreateDialog(QWidget):
             progress_item = QTableWidgetItem(f"{progress_percent:.1f}%")
             progress_item.setTextAlignment(Qt.AlignCenter)
             self.timetable_table.setItem(i, 7, progress_item)
+        
+        # 마지막 주차 병합 처리
+        if len(timetable) - week_start_row > 1:
+            self.timetable_table.setSpan(week_start_row, 0, len(timetable) - week_start_row, 1)
     
     def on_cell_clicked(self, row, column):
         """셀 클릭 시 수정 가능"""
