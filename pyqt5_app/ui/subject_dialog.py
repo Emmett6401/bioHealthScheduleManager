@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushBu
 from PyQt5.QtCore import Qt
 import sys
 import os
+import traceback
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db_manager import DatabaseManager
@@ -55,28 +56,55 @@ class SubjectDialog(QWidget):
         self.hours_input.setRange(1, 999)
         self.hours_input.setValue(40)
         self.hours_input.setSuffix(" 시간")
+        self.hours_input.setMaximumWidth(120)
         form_layout.addWidget(self.hours_input, 0, 5)
+        
+        # 요일 선택
+        form_layout.addWidget(QLabel("수업 요일:"), 0, 6)
+        self.day_combo = QComboBox()
+        self.day_combo.addItems(["월요일", "화요일", "수요일", "목요일", "금요일"])
+        self.day_combo.setMaximumWidth(100)
+        form_layout.addWidget(self.day_combo, 0, 7)
+        
+        # 격주 여부
+        form_layout.addWidget(QLabel("격주:"), 0, 8)
+        self.biweekly_combo = QComboBox()
+        self.biweekly_combo.addItems(["매주", "격주"])
+        self.biweekly_combo.setMaximumWidth(80)
+        self.biweekly_combo.currentIndexChanged.connect(self.on_biweekly_changed)
+        form_layout.addWidget(self.biweekly_combo, 0, 9)
+        
+        # 격주 선택 (1주차/2주차)
+        form_layout.addWidget(QLabel("주차:"), 0, 10)
+        self.week_offset_combo = QComboBox()
+        self.week_offset_combo.addItems(["1주차", "2주차"])
+        self.week_offset_combo.setMaximumWidth(80)
+        self.week_offset_combo.setEnabled(False)  # 기본은 비활성화
+        form_layout.addWidget(self.week_offset_combo, 0, 11)
         
         # 주강사
         form_layout.addWidget(QLabel("주강사:"), 1, 0)
         self.main_combo = QComboBox()
-        self.main_combo.setMinimumWidth(200)
+        self.main_combo.setMinimumWidth(150)
+        self.main_combo.setMaximumWidth(200)
         self.main_combo.setStyleSheet("QComboBox { font-family: 'Courier New', monospace; }")
-        form_layout.addWidget(self.main_combo, 1, 1)
+        form_layout.addWidget(self.main_combo, 1, 1, 1, 3)  # span 3 columns
         
         # 보조강사
-        form_layout.addWidget(QLabel("보조강사:"), 1, 2)
+        form_layout.addWidget(QLabel("보조강사:"), 1, 4)
         self.assistant_combo = QComboBox()
-        self.assistant_combo.setMinimumWidth(200)
+        self.assistant_combo.setMinimumWidth(150)
+        self.assistant_combo.setMaximumWidth(200)
         self.assistant_combo.setStyleSheet("QComboBox { font-family: 'Courier New', monospace; }")
-        form_layout.addWidget(self.assistant_combo, 1, 3)
+        form_layout.addWidget(self.assistant_combo, 1, 5, 1, 3)  # span 3 columns
         
         # 예비강사
-        form_layout.addWidget(QLabel("예비강사:"), 1, 4)
+        form_layout.addWidget(QLabel("예비강사:"), 1, 8)
         self.reserve_combo = QComboBox()
-        self.reserve_combo.setMinimumWidth(200)
+        self.reserve_combo.setMinimumWidth(150)
+        self.reserve_combo.setMaximumWidth(200)
         self.reserve_combo.setStyleSheet("QComboBox { font-family: 'Courier New', monospace; }")
-        form_layout.addWidget(self.reserve_combo, 1, 5)
+        form_layout.addWidget(self.reserve_combo, 1, 9, 1, 3)  # span 3 columns
         
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
@@ -108,8 +136,8 @@ class SubjectDialog(QWidget):
         
         # 테이블
         self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["코드", "과목명", "수업시수", "주강사", "보조강사", "예비강사"])
+        self.table.setColumnCount(9)
+        self.table.setHorizontalHeaderLabels(["코드", "과목명", "수업시수", "요일", "격주", "주차", "주강사", "보조강사", "예비강사"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
@@ -123,6 +151,10 @@ class SubjectDialog(QWidget):
         
         # 강사 목록 로드
         self.load_instructors()
+    
+    def on_biweekly_changed(self, index):
+        """격주 여부 변경 시"""
+        self.week_offset_combo.setEnabled(index == 1)  # 격주 선택 시만 활성화
         
     def load_instructors(self):
         """강사 목록 로드 - 유형별 필터링"""
@@ -190,7 +222,10 @@ class SubjectDialog(QWidget):
                 self.reserve_combo.addItem(display_text, row['code'])
                 
         except Exception as e:
-            print(f"강사 목록 로드 오류: {str(e)}")
+            error_msg = f"강사 목록 로드 오류: {str(e)}\n{traceback.format_exc()}"
+            print("=" * 80)
+            print(error_msg)
+            print("=" * 80)
         
     def load_data(self):
         """데이터 로드"""
@@ -221,17 +256,38 @@ class SubjectDialog(QWidget):
                 self.table.setItem(row_position, 1, QTableWidgetItem(row['name'] or ''))
                 self.table.setItem(row_position, 2, QTableWidgetItem(str(row['hours']) + ' 시간'))
                 
+                # 요일 표시
+                day_names = ["월", "화", "수", "목", "금"]
+                day_text = day_names[row['day_of_week']] if row.get('day_of_week') is not None else '-'
+                self.table.setItem(row_position, 3, QTableWidgetItem(day_text))
+                
+                # 격주 여부
+                biweekly_text = "격주" if row.get('is_biweekly') else "매주"
+                self.table.setItem(row_position, 4, QTableWidgetItem(biweekly_text))
+                
+                # 주차 표시
+                if row.get('is_biweekly'):
+                    week_text = "1주차" if row.get('week_offset', 0) == 0 else "2주차"
+                else:
+                    week_text = '-'
+                self.table.setItem(row_position, 5, QTableWidgetItem(week_text))
+                
                 # 강사 이름 뒤에 구분 추가
                 main_name = f"{row['main_name']}-주강사" if row['main_name'] else '-'
                 assistant_name = f"{row['assistant_name']}-보조강사" if row['assistant_name'] else '-'
                 reserve_name = f"{row['reserve_name']}-예비강사" if row['reserve_name'] else '-'
                 
-                self.table.setItem(row_position, 3, QTableWidgetItem(main_name))
-                self.table.setItem(row_position, 4, QTableWidgetItem(assistant_name))
-                self.table.setItem(row_position, 5, QTableWidgetItem(reserve_name))
+                self.table.setItem(row_position, 6, QTableWidgetItem(main_name))
+                self.table.setItem(row_position, 7, QTableWidgetItem(assistant_name))
+                self.table.setItem(row_position, 8, QTableWidgetItem(reserve_name))
                 
         except Exception as e:
-            QMessageBox.critical(self, "오류", f"데이터 로드 실패: {str(e)}")
+            error_msg = f"데이터 로드 실패: {str(e)}\n\n상세 오류:\n{traceback.format_exc()}"
+            print("=" * 80)
+            print("교과목 데이터 로드 오류:")
+            print(error_msg)
+            print("=" * 80)
+            QMessageBox.critical(self, "오류", error_msg)
         
     def on_row_selected(self, row, column):
         """행 선택 시"""
@@ -246,6 +302,20 @@ class SubjectDialog(QWidget):
         result = self.db.fetch_one(query, (code,))
         
         if result:
+            # 요일 설정
+            if result.get('day_of_week') is not None:
+                self.day_combo.setCurrentIndex(result['day_of_week'])
+            
+            # 격주 여부 설정
+            is_biweekly = result.get('is_biweekly', False)
+            self.biweekly_combo.setCurrentIndex(1 if is_biweekly else 0)
+            
+            # 주차 설정 (격주인 경우에만)
+            if is_biweekly:
+                week_offset = result.get('week_offset', 0)
+                self.week_offset_combo.setCurrentIndex(week_offset)
+            
+            # 강사 설정
             self.set_combo_by_code(self.main_combo, result['main_instructor'])
             self.set_combo_by_code(self.assistant_combo, result['assistant_instructor'])
             self.set_combo_by_code(self.reserve_combo, result['reserve_instructor'])
@@ -269,6 +339,9 @@ class SubjectDialog(QWidget):
             return
         
         hours = self.hours_input.value()
+        day_of_week = self.day_combo.currentIndex()  # 0=월, 1=화, ...
+        is_biweekly = 1 if self.biweekly_combo.currentIndex() == 1 else 0
+        week_offset = self.week_offset_combo.currentIndex()  # 0=1주차, 1=2주차
         main_instructor = self.main_combo.currentData()
         assistant_instructor = self.assistant_combo.currentData()
         reserve_instructor = self.reserve_combo.currentData()
@@ -277,17 +350,24 @@ class SubjectDialog(QWidget):
             code = self.db.get_next_code('subjects', CODE_PREFIX['subject'])
             
             query = """
-                INSERT INTO subjects (code, name, hours, main_instructor, assistant_instructor, reserve_instructor) 
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO subjects (code, name, hours, day_of_week, is_biweekly, week_offset,
+                                     main_instructor, assistant_instructor, reserve_instructor) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            self.db.execute_query(query, (code, name, hours, main_instructor, assistant_instructor, reserve_instructor))
+            self.db.execute_query(query, (code, name, hours, day_of_week, is_biweekly, week_offset,
+                                         main_instructor, assistant_instructor, reserve_instructor))
             
             QMessageBox.information(self, "성공", f"교과목 {code}가 추가되었습니다.")
             self.clear_form()
             self.load_data()
             
         except Exception as e:
-            QMessageBox.critical(self, "오류", f"추가 실패: {str(e)}")
+            error_msg = f"추가 실패: {str(e)}\n\n상세 오류:\n{traceback.format_exc()}"
+            print("=" * 80)
+            print("교과목 추가 오류:")
+            print(error_msg)
+            print("=" * 80)
+            QMessageBox.critical(self, "오류", error_msg)
     
     def update_subject(self):
         """교과목 수정"""
@@ -299,6 +379,9 @@ class SubjectDialog(QWidget):
             return
         
         hours = self.hours_input.value()
+        day_of_week = self.day_combo.currentIndex()
+        is_biweekly = 1 if self.biweekly_combo.currentIndex() == 1 else 0
+        week_offset = self.week_offset_combo.currentIndex()
         main_instructor = self.main_combo.currentData()
         assistant_instructor = self.assistant_combo.currentData()
         reserve_instructor = self.reserve_combo.currentData()
@@ -306,18 +389,24 @@ class SubjectDialog(QWidget):
         try:
             query = """
                 UPDATE subjects 
-                SET name = %s, hours = %s, main_instructor = %s, 
-                    assistant_instructor = %s, reserve_instructor = %s 
+                SET name = %s, hours = %s, day_of_week = %s, is_biweekly = %s, week_offset = %s,
+                    main_instructor = %s, assistant_instructor = %s, reserve_instructor = %s 
                 WHERE code = %s
             """
-            self.db.execute_query(query, (name, hours, main_instructor, assistant_instructor, reserve_instructor, code))
+            self.db.execute_query(query, (name, hours, day_of_week, is_biweekly, week_offset,
+                                         main_instructor, assistant_instructor, reserve_instructor, code))
             
             QMessageBox.information(self, "성공", "교과목이 수정되었습니다.")
             self.clear_form()
             self.load_data()
             
         except Exception as e:
-            QMessageBox.critical(self, "오류", f"수정 실패: {str(e)}")
+            error_msg = f"수정 실패: {str(e)}\n\n상세 오류:\n{traceback.format_exc()}"
+            print("=" * 80)
+            print("교과목 수정 오류:")
+            print(error_msg)
+            print("=" * 80)
+            QMessageBox.critical(self, "오류", error_msg)
     
     def delete_subject(self):
         """교과목 삭제"""
@@ -341,13 +430,22 @@ class SubjectDialog(QWidget):
                 self.load_data()
                 
             except Exception as e:
-                QMessageBox.critical(self, "오류", f"삭제 실패: {str(e)}")
+                error_msg = f"삭제 실패: {str(e)}\n\n상세 오류:\n{traceback.format_exc()}"
+                print("=" * 80)
+                print("교과목 삭제 오류:")
+                print(error_msg)
+                print("=" * 80)
+                QMessageBox.critical(self, "오류", error_msg)
     
     def clear_form(self):
         """폼 초기화"""
         self.code_input.clear()
         self.name_input.clear()
         self.hours_input.setValue(40)
+        self.day_combo.setCurrentIndex(0)  # 월요일
+        self.biweekly_combo.setCurrentIndex(0)  # 매주
+        self.week_offset_combo.setCurrentIndex(0)  # 1주차
+        self.week_offset_combo.setEnabled(False)  # 비활성화
         self.main_combo.setCurrentIndex(0)
         self.assistant_combo.setCurrentIndex(0)
         self.reserve_combo.setCurrentIndex(0)
