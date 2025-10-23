@@ -23,6 +23,7 @@ from ui.subject_dialog import SubjectDialog
 from ui.holiday_dialog import HolidayDialog
 from ui.course_dialog import CourseDialog
 from ui.project_dialog import ProjectDialog
+from ui.timetable_create_dialog import TimetableCreateDialog
 
 
 class KDTMainWindowFull(QMainWindow):
@@ -152,6 +153,7 @@ class KDTMainWindowFull(QMainWindow):
         timetable_menu = menubar.addMenu('시간표')
         
         create_timetable_action = QAction('시간표 작성', self)
+        create_timetable_action.triggered.connect(self.show_timetable_create_dialog)
         timetable_menu.addAction(create_timetable_action)
         
         view_timetable_action = QAction('시간표 조회', self)
@@ -283,10 +285,17 @@ class KDTMainWindowFull(QMainWindow):
         
         # 세 번째 행
         row3 = QHBoxLayout()
+        row3.addWidget(self.create_feature_button("📝 시간표 작성", "#3F51B5", self.show_timetable_create_dialog))
         row3.addWidget(self.create_feature_button("📊 Excel 내보내기", "#795548", self.export_excel))
         row3.addWidget(self.create_feature_button("📥 Excel 가져오기", "#607D8B", self.import_excel))
-        row3.addWidget(self.create_feature_button("🔧 데이터베이스 초기화", "#9E9E9E", self.init_database))
         buttons_layout.addLayout(row3)
+        
+        # 네 번째 행
+        row4 = QHBoxLayout()
+        row4.addWidget(self.create_feature_button("🔧 데이터베이스 초기화", "#9E9E9E", self.init_database))
+        row4.addStretch()
+        row4.addStretch()
+        buttons_layout.addLayout(row4)
         
         layout.addLayout(buttons_layout)
         layout.addStretch()
@@ -395,6 +404,10 @@ class KDTMainWindowFull(QMainWindow):
     def show_project_dialog(self):
         """프로젝트 관리 탭 표시"""
         self.open_or_focus_tab("프로젝트 관리", ProjectDialog, "💼")
+    
+    def show_timetable_create_dialog(self):
+        """시간표 작성 탭 표시"""
+        self.open_or_focus_tab("시간표 작성", TimetableCreateDialog, "📝")
         
     def show_timetable_generate_dialog(self):
         """시간표 자동 생성 다이얼로그 표시"""
