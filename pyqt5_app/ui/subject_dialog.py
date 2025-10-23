@@ -172,12 +172,12 @@ class SubjectDialog(QWidget):
             """
             main_rows = self.db.fetch_all(query_main)
             
-            # 보조강사용: type='2' (보조강사)만
+            # 보조강사용: type='1' (주강사) OR type='2' (보조강사)
             query_assistant = """
                 SELECT i.code, i.name, ic.type
                 FROM instructors i
                 LEFT JOIN instructor_codes ic ON i.instructor_type = ic.code
-                WHERE ic.type = '2'
+                WHERE ic.type IN ('1', '2')
                 ORDER BY i.code
             """
             assistant_rows = self.db.fetch_all(query_assistant)
@@ -207,7 +207,9 @@ class SubjectDialog(QWidget):
             for row in assistant_rows:
                 # 이름을 10자로 맞춰서 정렬
                 name_padded = row['name'].ljust(10)
-                display_text = f"{name_padded} - 보조강사"
+                # type에 따라 역할 표시
+                role = "주강사" if row['type'] == '1' else "보조강사"
+                display_text = f"{name_padded} - {role}"
                 self.assistant_combo.addItem(display_text, row['code'])
             
             # 예비강사 콤보박스
