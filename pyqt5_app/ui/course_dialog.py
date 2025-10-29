@@ -56,7 +56,7 @@ class CourseDialog(QWidget):
         date_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         date_layout = QHBoxLayout()
         date_layout.setSpacing(10)
-        date_layout.setContentsMargins(10, 8, 10, 8)
+        date_layout.setContentsMargins(10, 10, 10, 10)
         
         self.start_date = QDateEdit()
         self.start_date.setCalendarPopup(True)
@@ -81,7 +81,7 @@ class CourseDialog(QWidget):
         hours_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         hours_layout = QHBoxLayout()
         hours_layout.setSpacing(10)
-        hours_layout.setContentsMargins(10, 8, 10, 8)
+        hours_layout.setContentsMargins(10, 10, 10, 10)
         
         # 강의 시수 (압축)
         lecture_layout = QHBoxLayout()
@@ -165,7 +165,7 @@ class CourseDialog(QWidget):
         calc_result_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         calc_result_layout = QHBoxLayout()
         calc_result_layout.setSpacing(15)
-        calc_result_layout.setContentsMargins(10, 8, 10, 8)
+        calc_result_layout.setContentsMargins(10, 10, 10, 10)
         
         # 총 기간 (한 줄)
         total_label = QLabel("총 기간:")
@@ -215,7 +215,7 @@ class CourseDialog(QWidget):
         holiday_list_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         holiday_list_layout = QVBoxLayout()
         holiday_list_layout.setSpacing(5)
-        holiday_list_layout.setContentsMargins(10, 6, 10, 6)
+        holiday_list_layout.setContentsMargins(10, 10, 10, 10)
         
         self.holiday_list_label = QLabel("공휴일이 없습니다.")
         self.holiday_list_label.setStyleSheet("font-size: 10pt; color: #666; padding: 5px;")
@@ -227,11 +227,11 @@ class CourseDialog(QWidget):
         
         # 기본 정보 입력 폼
         form_group = QGroupBox("📋 기본 정보")
-        form_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 15px; margin-top: 8px; }")
+        form_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 12px; margin-top: 8px; }")
         form_layout = QGridLayout()
-        form_layout.setSpacing(8)
-        form_layout.setVerticalSpacing(8)
-        form_layout.setContentsMargins(10, 8, 10, 8)
+        form_layout.setSpacing(6)
+        form_layout.setVerticalSpacing(6)
+        form_layout.setContentsMargins(10, 6, 10, 6)
         
         # 컬럼 비율 설정: 왼쪽(라벨:값) = 1:2, 오른쪽(라벨:값) = 1:4
         form_layout.setColumnStretch(0, 1)  # 왼쪽 라벨
@@ -246,7 +246,7 @@ class CourseDialog(QWidget):
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("C-001 (자동 생성)")
         self.code_input.setReadOnly(True)
-        self.code_input.setMinimumHeight(30)
+        self.code_input.setMinimumHeight(26)
         self.code_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.code_input, 0, 1)
         
@@ -258,7 +258,7 @@ class CourseDialog(QWidget):
         self.capacity.setRange(1, 999)
         self.capacity.setValue(30)
         self.capacity.setSuffix(" 명")
-        self.capacity.setMinimumHeight(30)
+        self.capacity.setMinimumHeight(26)
         self.capacity.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.capacity, 0, 3)
         
@@ -268,7 +268,7 @@ class CourseDialog(QWidget):
         form_layout.addWidget(name_label, 1, 0)
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("예: 1반")
-        self.name_input.setMinimumHeight(30)
+        self.name_input.setMinimumHeight(26)
         self.name_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.name_input, 1, 1)
         
@@ -278,7 +278,7 @@ class CourseDialog(QWidget):
         form_layout.addWidget(location_label, 2, 0)
         self.location_input = QLineEdit()
         self.location_input.setPlaceholderText("예: 본관 101호")
-        self.location_input.setMinimumHeight(30)
+        self.location_input.setMinimumHeight(26)
         self.location_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.location_input, 2, 1)
         
@@ -288,8 +288,8 @@ class CourseDialog(QWidget):
         form_layout.addWidget(notes_label, 3, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
-        self.notes_input.setMinimumHeight(45)
-        self.notes_input.setMaximumHeight(45)
+        self.notes_input.setMinimumHeight(38)
+        self.notes_input.setMaximumHeight(38)
         self.notes_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.notes_input, 3, 1)
         
@@ -304,7 +304,7 @@ class CourseDialog(QWidget):
             "background-color: #F5F5F5; border-radius: 4px; border: 1px solid #DDD;"
         )
         self.selected_subjects_display.setWordWrap(True)
-        self.selected_subjects_display.setMinimumHeight(75)
+        self.selected_subjects_display.setMinimumHeight(64)
         self.selected_subjects_display.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # 1행부터 3행까지(총 3행) 걸쳐서 표시
         form_layout.addWidget(self.selected_subjects_display, 1, 3, 3, 1)
