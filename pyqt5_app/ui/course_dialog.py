@@ -51,12 +51,12 @@ class CourseDialog(QWidget):
         layout.setSpacing(10)
         layout.setContentsMargins(15, 10, 15, 10)
         
-        # 과정 시작일 입력 (압축)
+        # 과정 시작일 입력
         date_group = QGroupBox("📅 과정 시작일")
-        date_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
+        date_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
         date_layout = QHBoxLayout()
-        date_layout.setSpacing(8)
-        date_layout.setContentsMargins(8, 5, 8, 5)
+        date_layout.setSpacing(10)
+        date_layout.setContentsMargins(10, 8, 10, 8)
         
         self.start_date = QDateEdit()
         self.start_date.setCalendarPopup(True)
@@ -64,7 +64,7 @@ class CourseDialog(QWidget):
         self.start_date.setDisplayFormat("yyyy-MM-dd")
         self.start_date.dateChanged.connect(self.calculate_dates)
         self.start_date.setMinimumWidth(140)
-        self.start_date.setMinimumHeight(25)
+        self.start_date.setMinimumHeight(28)
         self.start_date.setStyleSheet("font-size: 10pt;")
         date_layout.addWidget(self.start_date)
         
@@ -78,10 +78,10 @@ class CourseDialog(QWidget):
         
         # 과정 개요 (총 600시간) - 압축 버전
         hours_group = QGroupBox("📚 과정 개요 (총 600시간)")
-        hours_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
+        hours_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
         hours_layout = QHBoxLayout()
-        hours_layout.setSpacing(8)
-        hours_layout.setContentsMargins(8, 5, 8, 5)
+        hours_layout.setSpacing(10)
+        hours_layout.setContentsMargins(10, 8, 10, 8)
         
         # 강의 시수 (압축)
         lecture_layout = QHBoxLayout()
@@ -95,7 +95,7 @@ class CourseDialog(QWidget):
         self.lecture_hours.setSuffix("h")
         self.lecture_hours.valueChanged.connect(self.calculate_dates)
         self.lecture_hours.setStyleSheet("font-size: 10pt;")
-        self.lecture_hours.setMinimumHeight(25)
+        self.lecture_hours.setMinimumHeight(28)
         self.lecture_hours.setMaximumWidth(80)
         lecture_layout.addWidget(self.lecture_hours)
         
@@ -121,7 +121,7 @@ class CourseDialog(QWidget):
         self.project_hours.setSuffix("h")
         self.project_hours.valueChanged.connect(self.calculate_dates)
         self.project_hours.setStyleSheet("font-size: 10pt;")
-        self.project_hours.setMinimumHeight(25)
+        self.project_hours.setMinimumHeight(28)
         self.project_hours.setMaximumWidth(80)
         project_layout.addWidget(self.project_hours)
         
@@ -147,7 +147,7 @@ class CourseDialog(QWidget):
         self.internship_hours.setSuffix("h")
         self.internship_hours.valueChanged.connect(self.calculate_dates)
         self.internship_hours.setStyleSheet("font-size: 10pt;")
-        self.internship_hours.setMinimumHeight(25)
+        self.internship_hours.setMinimumHeight(28)
         self.internship_hours.setMaximumWidth(80)
         internship_layout.addWidget(self.internship_hours)
         
@@ -162,10 +162,10 @@ class CourseDialog(QWidget):
         
         # 과정 일정 계산 결과 - 한 줄로 압축
         calc_result_group = QGroupBox("📊 교육 일정 계산 결과")
-        calc_result_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
+        calc_result_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
         calc_result_layout = QHBoxLayout()
         calc_result_layout.setSpacing(15)
-        calc_result_layout.setContentsMargins(8, 5, 8, 5)
+        calc_result_layout.setContentsMargins(10, 8, 10, 8)
         
         # 총 기간 (한 줄)
         total_label = QLabel("총 기간:")
@@ -210,12 +210,12 @@ class CourseDialog(QWidget):
         calc_result_group.setLayout(calc_result_layout)
         layout.addWidget(calc_result_group)
         
-        # 공휴일 목록 표시 (압축)
+        # 공휴일 목록 표시
         holiday_list_group = QGroupBox("🎉 과정 기간 내 공휴일")
-        holiday_list_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
+        holiday_list_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
         holiday_list_layout = QVBoxLayout()
-        holiday_list_layout.setSpacing(3)
-        holiday_list_layout.setContentsMargins(8, 3, 8, 3)
+        holiday_list_layout.setSpacing(5)
+        holiday_list_layout.setContentsMargins(10, 6, 10, 6)
         
         self.holiday_list_label = QLabel("공휴일이 없습니다.")
         self.holiday_list_label.setStyleSheet("font-size: 10pt; color: #666; padding: 5px;")
@@ -288,8 +288,8 @@ class CourseDialog(QWidget):
         form_layout.addWidget(notes_label, 3, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
-        self.notes_input.setMinimumHeight(60)
-        self.notes_input.setMaximumHeight(60)
+        self.notes_input.setMinimumHeight(45)
+        self.notes_input.setMaximumHeight(45)
         self.notes_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.notes_input, 3, 1)
         
@@ -304,7 +304,7 @@ class CourseDialog(QWidget):
             "background-color: #F5F5F5; border-radius: 4px; border: 1px solid #DDD;"
         )
         self.selected_subjects_display.setWordWrap(True)
-        self.selected_subjects_display.setMinimumHeight(90)
+        self.selected_subjects_display.setMinimumHeight(75)
         self.selected_subjects_display.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # 1행부터 3행까지(총 3행) 걸쳐서 표시
         form_layout.addWidget(self.selected_subjects_display, 1, 3, 3, 1)
