@@ -6,16 +6,28 @@
 from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLineEdit, QLabel,
                              QComboBox, QMessageBox, QHeaderView, QGroupBox,
-                             QGridLayout, QTextEdit, QFileDialog)
+                             QGridLayout, QTextEdit, QFileDialog, QProgressDialog)
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QImage
 import sys
 import os
 import traceback
 import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
 from datetime import datetime
+from PIL import Image
+import io
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db_manager import DatabaseManager
+from config_db import CODE_PREFIX
+
+# 프로젝트 루트 디렉토리
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PHOTO_DIR = os.path.join(PROJECT_ROOT, 'student_photos')
+PHOTO_ORIGINALS = os.path.join(PHOTO_DIR, 'originals')
+PHOTO_THUMBNAILS = os.path.join(PHOTO_DIR, 'thumbnails')
+DEFAULT_AVATAR = os.path.join(PHOTO_DIR, 'default_avatar.png')
 
 
 class StudentDialog(QWidget):
@@ -25,7 +37,10 @@ class StudentDialog(QWidget):
         super().__init__(parent)
         self.db = DatabaseManager()
         self.original_code = None  # 수정 시 원본 코드 저장
+        self.current_photo_path = None  # 현재 선택된 사진 경로
+        self.photo_label = None  # 사진 표시 라벨
         self.init_ui()
+        self.load_courses()
         self.load_data()
         
     def init_ui(self):
@@ -44,9 +59,44 @@ class StudentDialog(QWidget):
         top_btn_layout.addStretch()
         layout.addLayout(top_btn_layout)
         
-        # 입력 폼
+        # 입력 폼 (사진 + 정보)
         form_group = QGroupBox("학생 정보 등록")
         form_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 10px; }")
+        main_form_layout = QHBoxLayout()
+        
+        # 왼쪽: 사진 영역
+        photo_widget = QWidget()
+        photo_layout = QVBoxLayout()
+        photo_layout.setSpacing(5)
+        
+        self.photo_label = QLabel()
+        self.photo_label.setFixedSize(150, 180)
+        self.photo_label.setStyleSheet("""
+            QLabel {
+                border: 2px solid #ccc;
+                border-radius: 5px;
+                background-color: #f5f5f5;
+            }
+        """)
+        self.photo_label.setAlignment(Qt.AlignCenter)
+        self.photo_label.setText("사진 없음")
+        photo_layout.addWidget(self.photo_label)
+        
+        upload_photo_btn = QPushButton("📷 사진 등록")
+        upload_photo_btn.setStyleSheet("background-color: #2196F3; color: white; padding: 5px;")
+        upload_photo_btn.clicked.connect(self.upload_photo)
+        photo_layout.addWidget(upload_photo_btn)
+        
+        remove_photo_btn = QPushButton("🗑️ 사진 삭제")
+        remove_photo_btn.setStyleSheet("padding: 5px;")
+        remove_photo_btn.clicked.connect(self.remove_photo)
+        photo_layout.addWidget(remove_photo_btn)
+        
+        photo_layout.addStretch()
+        photo_widget.setLayout(photo_layout)
+        main_form_layout.addWidget(photo_widget)
+        
+        # 오른쪽: 정보 입력 폼
         form_layout = QGridLayout()
         form_layout.setSpacing(8)
         form_layout.setVerticalSpacing(8)
@@ -130,7 +180,12 @@ class StudentDialog(QWidget):
         self.notes_input.setMaximumHeight(40)
         form_layout.addWidget(self.notes_input, 6, 1, 1, 5)
         
-        form_group.setLayout(form_layout)
+        # 폼 레이아웃을 메인 레이아웃에 추가
+        form_widget = QWidget()
+        form_widget.setLayout(form_layout)
+        main_form_layout.addWidget(form_widget, 1)  # stretch factor 1
+        
+        form_group.setLayout(main_form_layout)
         layout.addWidget(form_group)
         
         # 버튼 그룹
@@ -339,12 +394,12 @@ class StudentDialog(QWidget):
         try:
             query = """
                 INSERT INTO students (code, name, birth_date, gender, phone, email, 
-                                    address, interests, education, introduction, campus, course_code, notes)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                    address, interests, education, introduction, campus, course_code, notes, photo_path)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             self.db.execute_query(query, (
                 code, name, birth_date, gender, phone, email,
-                address, interests, education, introduction, campus, course_code, notes
+                address, interests, education, introduction, campus, course_code, notes, self.current_photo_path
             ))
             
             QMessageBox.information(self, "성공", f"학생 {code}가 추가되었습니다.")
@@ -392,12 +447,12 @@ class StudentDialog(QWidget):
                 UPDATE students 
                 SET code = %s, name = %s, birth_date = %s, gender = %s, phone = %s, email = %s,
                     address = %s, interests = %s, education = %s, introduction = %s, campus = %s,
-                    course_code = %s, notes = %s
+                    course_code = %s, notes = %s, photo_path = %s
                 WHERE code = %s
             """
             self.db.execute_query(query, (
                 code, name, birth_date, gender, phone, email,
-                address, interests, education, introduction, campus, course_code, notes,
+                address, interests, education, introduction, campus, course_code, notes, self.current_photo_path,
                 self.original_code
             ))
             
@@ -524,6 +579,9 @@ class StudentDialog(QWidget):
                             break
                 else:
                     self.course_combo.setCurrentIndex(0)  # 미배정
+                
+                # 사진 로드
+                self.load_student_photo(code)
                     
         except Exception as e:
             print(f"상세 정보 로드 오류: {str(e)}")
@@ -544,3 +602,141 @@ class StudentDialog(QWidget):
         self.course_combo.setCurrentIndex(0)
         self.notes_input.clear()
         self.original_code = None
+        self.current_photo_path = None
+        self.photo_label.clear()
+        self.photo_label.setText("사진 없음")
+    
+    def upload_photo(self):
+        """학생 사진 업로드"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "학생 사진 선택", "",
+            "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # 사진 저장 디렉토리 생성
+            os.makedirs(PHOTO_ORIGINALS, exist_ok=True)
+            os.makedirs(PHOTO_THUMBNAILS, exist_ok=True)
+            
+            # 파일명 생성 (학생 코드_timestamp.확장자)
+            code = self.code_input.text().strip()
+            if not code:
+                QMessageBox.warning(self, "경고", "먼저 학생 코드를 입력하세요.")
+                return
+            
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            file_ext = os.path.splitext(file_path)[1]
+            filename = f"{code}_{timestamp}{file_ext}"
+            
+            # 원본 저장
+            original_path = os.path.join(PHOTO_ORIGINALS, filename)
+            img = Image.open(file_path)
+            img.save(original_path, quality=95)
+            
+            # 썸네일 생성 (150x180)
+            thumbnail_path = os.path.join(PHOTO_THUMBNAILS, filename)
+            img_copy = img.copy()
+            img_copy.thumbnail((150, 180), Image.Resampling.LANCZOS)
+            
+            # 배경이 있는 썸네일 생성 (정확한 크기)
+            thumbnail = Image.new('RGB', (150, 180), (255, 255, 255))
+            offset = ((150 - img_copy.width) // 2, (180 - img_copy.height) // 2)
+            thumbnail.paste(img_copy, offset)
+            thumbnail.save(thumbnail_path, quality=85)
+            
+            # 현재 사진 경로 저장
+            self.current_photo_path = original_path
+            
+            # 미리보기 표시
+            pixmap = QPixmap(thumbnail_path)
+            self.photo_label.setPixmap(pixmap)
+            
+            # DB에 사진 경로 저장 (학생이 이미 등록된 경우)
+            if self.original_code:
+                self.save_photo_to_db(self.original_code, original_path)
+                QMessageBox.information(self, "성공", "사진이 등록되었습니다.")
+            else:
+                QMessageBox.information(self, "성공", 
+                    "사진이 선택되었습니다.\n학생 추가/수정 시 자동으로 저장됩니다.")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"사진 업로드 실패:\n{str(e)}")
+    
+    def remove_photo(self):
+        """학생 사진 삭제"""
+        if not self.current_photo_path and not self.original_code:
+            QMessageBox.warning(self, "경고", "삭제할 사진이 없습니다.")
+            return
+        
+        reply = QMessageBox.question(
+            self, "확인",
+            "사진을 삭제하시겠습니까?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                # DB에서 사진 경로 삭제
+                if self.original_code:
+                    self.save_photo_to_db(self.original_code, None)
+                
+                # 파일 삭제 (실제로는 보관)
+                self.current_photo_path = None
+                self.photo_label.clear()
+                self.photo_label.setText("사진 없음")
+                
+                QMessageBox.information(self, "성공", "사진이 삭제되었습니다.")
+                
+            except Exception as e:
+                QMessageBox.critical(self, "오류", f"사진 삭제 실패:\n{str(e)}")
+    
+    def save_photo_to_db(self, student_code, photo_path):
+        """DB에 사진 경로 저장"""
+        try:
+            if not self.db.connect():
+                return
+            
+            query = "UPDATE students SET photo_path = %s WHERE code = %s"
+            self.db.execute_query(query, (photo_path, student_code))
+            
+        except Exception as e:
+            print(f"사진 경로 저장 오류: {str(e)}")
+    
+    def load_student_photo(self, student_code):
+        """학생 사진 로드"""
+        try:
+            if not self.db.connect():
+                return
+            
+            query = "SELECT photo_path FROM students WHERE code = %s"
+            result = self.db.fetch_one(query, (student_code,))
+            
+            if result and result.get('photo_path'):
+                photo_path = result['photo_path']
+                self.current_photo_path = photo_path
+                
+                # 썸네일 경로 생성
+                filename = os.path.basename(photo_path)
+                thumbnail_path = os.path.join(PHOTO_THUMBNAILS, filename)
+                
+                # 썸네일 표시
+                if os.path.exists(thumbnail_path):
+                    pixmap = QPixmap(thumbnail_path)
+                    self.photo_label.setPixmap(pixmap)
+                elif os.path.exists(photo_path):
+                    # 원본만 있으면 원본 표시
+                    pixmap = QPixmap(photo_path)
+                    scaled_pixmap = pixmap.scaled(150, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    self.photo_label.setPixmap(scaled_pixmap)
+                else:
+                    self.photo_label.setText("사진 없음")
+            else:
+                self.current_photo_path = None
+                self.photo_label.clear()
+                self.photo_label.setText("사진 없음")
+                
+        except Exception as e:
+            print(f"사진 로드 오류: {str(e)}")
