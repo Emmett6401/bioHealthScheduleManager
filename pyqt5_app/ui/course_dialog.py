@@ -51,205 +51,174 @@ class CourseDialog(QWidget):
         layout.setSpacing(10)
         layout.setContentsMargins(15, 10, 15, 10)
         
-        # 과정 시작일 입력
+        # 과정 시작일 입력 (압축)
         date_group = QGroupBox("📅 과정 시작일")
-        date_group.setStyleSheet("QGroupBox { font-size: 12px; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
+        date_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
         date_layout = QHBoxLayout()
-        date_layout.setSpacing(10)
-        date_layout.setContentsMargins(10, 8, 10, 8)
+        date_layout.setSpacing(8)
+        date_layout.setContentsMargins(8, 5, 8, 5)
         
         self.start_date = QDateEdit()
         self.start_date.setCalendarPopup(True)
         self.start_date.setDate(QDate.currentDate())
         self.start_date.setDisplayFormat("yyyy-MM-dd")
         self.start_date.dateChanged.connect(self.calculate_dates)
-        self.start_date.setMinimumWidth(160)
-        self.start_date.setMinimumHeight(30)
-        self.start_date.setStyleSheet("font-size: 12px;")
+        self.start_date.setMinimumWidth(140)
+        self.start_date.setMinimumHeight(25)
+        self.start_date.setStyleSheet("font-size: 10pt;")
         date_layout.addWidget(self.start_date)
         
         info_label = QLabel("ℹ️ 과정 기간 내 법정공휴일이 있다면 등록해주세요.")
-        info_label.setStyleSheet("color: #2196F3; font-size: 12px;")
+        info_label.setStyleSheet("color: #2196F3; font-size: 10pt;")
         date_layout.addWidget(info_label)
         date_layout.addStretch()
         
         date_group.setLayout(date_layout)
         layout.addWidget(date_group)
         
-        # 과정 개요 (총 600시간) - 카드 형식
+        # 과정 개요 (총 600시간) - 압축 버전
         hours_group = QGroupBox("📚 과정 개요 (총 600시간)")
-        hours_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
+        hours_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
         hours_layout = QHBoxLayout()
-        hours_layout.setSpacing(12)
-        hours_layout.setContentsMargins(10, 8, 10, 8)
+        hours_layout.setSpacing(8)
+        hours_layout.setContentsMargins(8, 5, 8, 5)
         
-        # 강의 시수 카드
-        lecture_card = QFrame()
-        lecture_card.setStyleSheet("""
-            QFrame {
-                background-color: #E3F2FD;
-                border-radius: 6px;
-                padding: 8px;
-            }
-        """)
-        lecture_card_layout = QVBoxLayout()
-        lecture_card_layout.setSpacing(3)
-        lecture_card_layout.setContentsMargins(6, 6, 6, 6)
-        
-        lecture_title = QLabel("📘 1단계: 이론")
-        lecture_title.setStyleSheet("font-weight: bold; font-size: 11pt; color: #1976D2;")
-        lecture_card_layout.addWidget(lecture_title)
+        # 강의 시수 (압축)
+        lecture_layout = QHBoxLayout()
+        lecture_title = QLabel("📘 이론:")
+        lecture_title.setStyleSheet("font-weight: bold; font-size: 10pt; color: #1976D2;")
+        lecture_layout.addWidget(lecture_title)
         
         self.lecture_hours = QSpinBox()
         self.lecture_hours.setRange(0, 9999)
         self.lecture_hours.setValue(260)
-        self.lecture_hours.setSuffix(" 시간")
+        self.lecture_hours.setSuffix("h")
         self.lecture_hours.valueChanged.connect(self.calculate_dates)
-        self.lecture_hours.setStyleSheet("font-size: 11pt; font-weight: bold;")
-        self.lecture_hours.setMinimumHeight(32)
-        lecture_card_layout.addWidget(self.lecture_hours)
+        self.lecture_hours.setStyleSheet("font-size: 10pt;")
+        self.lecture_hours.setMinimumHeight(25)
+        self.lecture_hours.setMaximumWidth(80)
+        lecture_layout.addWidget(self.lecture_hours)
         
-        self.lecture_days_label = QLabel("약 33일")
-        self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 11pt; font-weight: bold;")
-        lecture_card_layout.addWidget(self.lecture_days_label)
+        self.lecture_days_label = QLabel("33일")
+        self.lecture_days_label.setStyleSheet("color: #1976D2; font-size: 10pt; font-weight: bold;")
+        lecture_layout.addWidget(self.lecture_days_label)
+        hours_layout.addLayout(lecture_layout)
         
-        lecture_card.setLayout(lecture_card_layout)
-        hours_layout.addWidget(lecture_card)
+        # 구분선
+        sep1 = QLabel("|")
+        sep1.setStyleSheet("color: #CCC; font-size: 10pt;")
+        hours_layout.addWidget(sep1)
         
-        # 프로젝트 시수 카드
-        project_card = QFrame()
-        project_card.setStyleSheet("""
-            QFrame {
-                background-color: #E8F5E9;
-                border-radius: 6px;
-                padding: 8px;
-            }
-        """)
-        project_card_layout = QVBoxLayout()
-        project_card_layout.setSpacing(3)
-        project_card_layout.setContentsMargins(6, 6, 6, 6)
-        
-        project_title = QLabel("📗 2단계: 프로젝트")
-        project_title.setStyleSheet("font-weight: bold; font-size: 11pt; color: #388E3C;")
-        project_card_layout.addWidget(project_title)
+        # 프로젝트 시수 (압축)
+        project_layout = QHBoxLayout()
+        project_title = QLabel("📗 프로젝트:")
+        project_title.setStyleSheet("font-weight: bold; font-size: 10pt; color: #388E3C;")
+        project_layout.addWidget(project_title)
         
         self.project_hours = QSpinBox()
         self.project_hours.setRange(0, 9999)
         self.project_hours.setValue(220)
-        self.project_hours.setSuffix(" 시간")
+        self.project_hours.setSuffix("h")
         self.project_hours.valueChanged.connect(self.calculate_dates)
-        self.project_hours.setStyleSheet("font-size: 11pt; font-weight: bold;")
-        self.project_hours.setMinimumHeight(32)
-        project_card_layout.addWidget(self.project_hours)
+        self.project_hours.setStyleSheet("font-size: 10pt;")
+        self.project_hours.setMinimumHeight(25)
+        self.project_hours.setMaximumWidth(80)
+        project_layout.addWidget(self.project_hours)
         
-        self.project_days_label = QLabel("약 28일")
-        self.project_days_label.setStyleSheet("color: #388E3C; font-size: 11pt; font-weight: bold;")
-        project_card_layout.addWidget(self.project_days_label)
+        self.project_days_label = QLabel("28일")
+        self.project_days_label.setStyleSheet("color: #388E3C; font-size: 10pt; font-weight: bold;")
+        project_layout.addWidget(self.project_days_label)
+        hours_layout.addLayout(project_layout)
         
-        project_card.setLayout(project_card_layout)
-        hours_layout.addWidget(project_card)
+        # 구분선
+        sep2 = QLabel("|")
+        sep2.setStyleSheet("color: #CCC; font-size: 10pt;")
+        hours_layout.addWidget(sep2)
         
-        # 인턴쉽 시수 카드
-        internship_card = QFrame()
-        internship_card.setStyleSheet("""
-            QFrame {
-                background-color: #FFF3E0;
-                border-radius: 6px;
-                padding: 8px;
-            }
-        """)
-        internship_card_layout = QVBoxLayout()
-        internship_card_layout.setSpacing(3)
-        internship_card_layout.setContentsMargins(6, 6, 6, 6)
-        
-        internship_title = QLabel("📙 3단계: 인턴십")
-        internship_title.setStyleSheet("font-weight: bold; font-size: 11pt; color: #F57C00;")
-        internship_card_layout.addWidget(internship_title)
+        # 인턴쉽 시수 (압축)
+        internship_layout = QHBoxLayout()
+        internship_title = QLabel("📙 인턴십:")
+        internship_title.setStyleSheet("font-weight: bold; font-size: 10pt; color: #F57C00;")
+        internship_layout.addWidget(internship_title)
         
         self.internship_hours = QSpinBox()
         self.internship_hours.setRange(0, 9999)
         self.internship_hours.setValue(120)
-        self.internship_hours.setSuffix(" 시간")
+        self.internship_hours.setSuffix("h")
         self.internship_hours.valueChanged.connect(self.calculate_dates)
-        self.internship_hours.setStyleSheet("font-size: 11pt; font-weight: bold;")
-        self.internship_hours.setMinimumHeight(32)
-        internship_card_layout.addWidget(self.internship_hours)
+        self.internship_hours.setStyleSheet("font-size: 10pt;")
+        self.internship_hours.setMinimumHeight(25)
+        self.internship_hours.setMaximumWidth(80)
+        internship_layout.addWidget(self.internship_hours)
         
-        self.internship_days_label = QLabel("약 15일")
-        self.internship_days_label.setStyleSheet("color: #F57C00; font-size: 11pt; font-weight: bold;")
-        internship_card_layout.addWidget(self.internship_days_label)
+        self.internship_days_label = QLabel("15일")
+        self.internship_days_label.setStyleSheet("color: #F57C00; font-size: 10pt; font-weight: bold;")
+        internship_layout.addWidget(self.internship_days_label)
+        hours_layout.addLayout(internship_layout)
         
-        internship_card.setLayout(internship_card_layout)
-        hours_layout.addWidget(internship_card)
-        
+        hours_layout.addStretch()
         hours_group.setLayout(hours_layout)
         layout.addWidget(hours_group)
         
-        # 과정 일정 계산 결과 - 압축 버전
+        # 과정 일정 계산 결과 - 한 줄로 압축
         calc_result_group = QGroupBox("📊 교육 일정 계산 결과")
-        calc_result_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
+        calc_result_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
         calc_result_layout = QHBoxLayout()
-        calc_result_layout.setSpacing(20)
-        calc_result_layout.setContentsMargins(10, 8, 10, 8)
+        calc_result_layout.setSpacing(15)
+        calc_result_layout.setContentsMargins(8, 5, 8, 5)
         
-        # 총 기간
-        total_period_layout = QVBoxLayout()
-        total_period_layout.setSpacing(5)
-        total_period_label = QLabel("총 기간")
-        total_period_label.setStyleSheet("font-size: 11pt; color: #666;")
-        total_period_layout.addWidget(total_period_label)
-        
+        # 총 기간 (한 줄)
+        total_label = QLabel("총 기간:")
+        total_label.setStyleSheet("font-size: 10pt; color: #666;")
+        calc_result_layout.addWidget(total_label)
         self.total_days_label = QLabel("113일")
-        self.total_days_label.setStyleSheet("font-size: 11pt; font-weight: bold; color: #2196F3;")
-        total_period_layout.addWidget(self.total_days_label)
-        calc_result_layout.addLayout(total_period_layout)
+        self.total_days_label.setStyleSheet("font-size: 10pt; font-weight: bold; color: #2196F3;")
+        calc_result_layout.addWidget(self.total_days_label)
         
-        calc_result_layout.addStretch()
+        # 구분선
+        sep3 = QLabel("|")
+        sep3.setStyleSheet("color: #CCC;")
+        calc_result_layout.addWidget(sep3)
         
-        # 근무일 (실제 교육일)
-        workdays_layout = QVBoxLayout()
-        workdays_layout.setSpacing(5)
-        workdays_label = QLabel("근무일 (600시간)")
-        workdays_label.setStyleSheet("font-size: 11pt; color: #666;")
-        workdays_layout.addWidget(workdays_label)
+        # 근무일 (한 줄)
+        workdays_label_text = QLabel("근무일:")
+        workdays_label_text.setStyleSheet("font-size: 10pt; color: #666;")
+        calc_result_layout.addWidget(workdays_label_text)
+        self.workdays_label = QLabel("76일 (600h)")
+        self.workdays_label.setStyleSheet("font-size: 10pt; font-weight: bold; color: #4CAF50;")
+        calc_result_layout.addWidget(self.workdays_label)
         
-        self.workdays_label = QLabel("76일 (600시간)")
-        self.workdays_label.setStyleSheet("font-size: 11pt; font-weight: bold; color: #4CAF50;")
-        workdays_layout.addWidget(self.workdays_label)
-        calc_result_layout.addLayout(workdays_layout)
+        # 구분선
+        sep4 = QLabel("|")
+        sep4.setStyleSheet("color: #CCC;")
+        calc_result_layout.addWidget(sep4)
         
-        calc_result_layout.addStretch()
-        
-        # 제외일 (주말+공휴일)
-        excluded_layout = QVBoxLayout()
-        excluded_layout.setSpacing(5)
-        excluded_label = QLabel("제외일 (주말+공휴일)")
-        excluded_label.setStyleSheet("font-size: 11pt; color: #666;")
-        excluded_layout.addWidget(excluded_label)
-        
+        # 제외일 (한 줄)
+        excluded_label_text = QLabel("제외일:")
+        excluded_label_text.setStyleSheet("font-size: 10pt; color: #666;")
+        calc_result_layout.addWidget(excluded_label_text)
         self.excluded_days_label = QLabel("5일")
-        self.excluded_days_label.setStyleSheet("font-size: 11pt; font-weight: bold; color: #F44336;")
-        excluded_layout.addWidget(self.excluded_days_label)
+        self.excluded_days_label.setStyleSheet("font-size: 10pt; font-weight: bold; color: #F44336;")
+        calc_result_layout.addWidget(self.excluded_days_label)
         
-        # 제외일 세부 정보 (주말/공휴일)
-        self.excluded_detail_label = QLabel("주말: 0일/공휴일: 0일")
-        self.excluded_detail_label.setStyleSheet("font-size: 11pt; color: #999;")
-        excluded_layout.addWidget(self.excluded_detail_label)
+        # 제외일 세부 정보
+        self.excluded_detail_label = QLabel("(주말: 0일/공휴일: 0일)")
+        self.excluded_detail_label.setStyleSheet("font-size: 9pt; color: #999;")
+        calc_result_layout.addWidget(self.excluded_detail_label)
         
-        calc_result_layout.addLayout(excluded_layout)
-        
+        calc_result_layout.addStretch()
         calc_result_group.setLayout(calc_result_layout)
         layout.addWidget(calc_result_group)
         
-        # 공휴일 목록 표시
+        # 공휴일 목록 표시 (압축)
         holiday_list_group = QGroupBox("🎉 과정 기간 내 공휴일")
-        holiday_list_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
+        holiday_list_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 8px; margin-top: 5px; }")
         holiday_list_layout = QVBoxLayout()
-        holiday_list_layout.setSpacing(5)
-        holiday_list_layout.setContentsMargins(10, 8, 10, 8)
+        holiday_list_layout.setSpacing(3)
+        holiday_list_layout.setContentsMargins(8, 3, 8, 3)
         
         self.holiday_list_label = QLabel("공휴일이 없습니다.")
-        self.holiday_list_label.setStyleSheet("font-size: 11pt; color: #666; padding: 8px;")
+        self.holiday_list_label.setStyleSheet("font-size: 10pt; color: #666; padding: 5px;")
         self.holiday_list_label.setWordWrap(True)
         holiday_list_layout.addWidget(self.holiday_list_label)
         
