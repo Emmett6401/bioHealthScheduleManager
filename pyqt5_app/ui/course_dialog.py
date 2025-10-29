@@ -276,63 +276,67 @@ class CourseDialog(QWidget):
         self.code_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.code_input, 0, 1)
         
-        # 반명칭
-        name_label = QLabel("반명칭:")
-        name_label.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(name_label, 0, 2)
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("예: 1반")
-        self.name_input.setMinimumHeight(30)
-        self.name_input.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(self.name_input, 0, 3)
-        
         # 인원수
         capacity_label = QLabel("인원수:")
         capacity_label.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(capacity_label, 1, 0)
+        form_layout.addWidget(capacity_label, 0, 2)
         self.capacity = QSpinBox()
         self.capacity.setRange(1, 999)
         self.capacity.setValue(30)
         self.capacity.setSuffix(" 명")
         self.capacity.setMinimumHeight(30)
         self.capacity.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(self.capacity, 1, 1)
+        form_layout.addWidget(self.capacity, 0, 3)
         
-        # 강의장소
+        # 반명칭 (왼쪽 절반)
+        name_label = QLabel("반명칭:")
+        name_label.setStyleSheet("font-size: 11pt;")
+        form_layout.addWidget(name_label, 1, 0)
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("예: 1반")
+        self.name_input.setMinimumHeight(30)
+        self.name_input.setMaximumWidth(150)
+        self.name_input.setStyleSheet("font-size: 11pt;")
+        form_layout.addWidget(self.name_input, 1, 1)
+        
+        # 강의장소 (왼쪽 절반)
         location_label = QLabel("강의장소:")
         location_label.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(location_label, 1, 2)
+        form_layout.addWidget(location_label, 2, 0)
         self.location_input = QLineEdit()
         self.location_input.setPlaceholderText("예: 본관 101호")
         self.location_input.setMinimumHeight(30)
+        self.location_input.setMaximumWidth(150)
         self.location_input.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(self.location_input, 1, 3)
+        form_layout.addWidget(self.location_input, 2, 1)
         
-        # 특이사항
+        # 특이사항 (왼쪽 절반)
         notes_label = QLabel("특이사항:")
         notes_label.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(notes_label, 2, 0)
+        form_layout.addWidget(notes_label, 3, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
-        self.notes_input.setMinimumHeight(30)
-        self.notes_input.setMaximumHeight(30)
+        self.notes_input.setMinimumHeight(60)
+        self.notes_input.setMaximumHeight(60)
+        self.notes_input.setMaximumWidth(150)
         self.notes_input.setStyleSheet("font-size: 11pt;")
-        form_layout.addWidget(self.notes_input, 2, 1, 1, 3)
+        form_layout.addWidget(self.notes_input, 3, 1)
         
-        # 선택된 과목 표시
+        # 선택된 과목 표시 (오른쪽 절반 - 세로로 길게)
         subjects_label = QLabel("📚 선택된 과목:")
         subjects_label.setStyleSheet("font-size: 11pt; font-weight: bold;")
-        form_layout.addWidget(subjects_label, 3, 0)
+        form_layout.addWidget(subjects_label, 1, 2, Qt.AlignTop)
+        
         self.selected_subjects_display = QLabel("과정을 선택하면 선택된 과목이 표시됩니다.")
         self.selected_subjects_display.setStyleSheet(
             "font-size: 10pt; color: #666; padding: 8px; "
             "background-color: #F5F5F5; border-radius: 4px; border: 1px solid #DDD;"
         )
         self.selected_subjects_display.setWordWrap(True)
-        self.selected_subjects_display.setMinimumHeight(60)
-        self.selected_subjects_display.setMaximumHeight(80)
+        self.selected_subjects_display.setMinimumHeight(90)
         self.selected_subjects_display.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        form_layout.addWidget(self.selected_subjects_display, 3, 1, 1, 3)
+        # 1행부터 3행까지(총 3행) 걸쳐서 표시
+        form_layout.addWidget(self.selected_subjects_display, 1, 3, 3, 1)
         
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
