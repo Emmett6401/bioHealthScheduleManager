@@ -53,7 +53,7 @@ class CourseDialog(QWidget):
         
         # 과정 시작일 입력
         date_group = QGroupBox("📅 과정 시작일")
-        date_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
+        date_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         date_layout = QHBoxLayout()
         date_layout.setSpacing(10)
         date_layout.setContentsMargins(10, 8, 10, 8)
@@ -78,7 +78,7 @@ class CourseDialog(QWidget):
         
         # 과정 개요 (총 600시간) - 압축 버전
         hours_group = QGroupBox("📚 과정 개요 (총 600시간)")
-        hours_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
+        hours_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         hours_layout = QHBoxLayout()
         hours_layout.setSpacing(10)
         hours_layout.setContentsMargins(10, 8, 10, 8)
@@ -162,7 +162,7 @@ class CourseDialog(QWidget):
         
         # 과정 일정 계산 결과 - 한 줄로 압축
         calc_result_group = QGroupBox("📊 교육 일정 계산 결과")
-        calc_result_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
+        calc_result_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         calc_result_layout = QHBoxLayout()
         calc_result_layout.setSpacing(15)
         calc_result_layout.setContentsMargins(10, 8, 10, 8)
@@ -212,7 +212,7 @@ class CourseDialog(QWidget):
         
         # 공휴일 목록 표시
         holiday_list_group = QGroupBox("🎉 과정 기간 내 공휴일")
-        holiday_list_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 10px; margin-top: 6px; }")
+        holiday_list_group.setStyleSheet("QGroupBox { font-size: 10pt; font-weight: bold; padding-top: 15px; margin-top: 6px; }")
         holiday_list_layout = QVBoxLayout()
         holiday_list_layout.setSpacing(5)
         holiday_list_layout.setContentsMargins(10, 6, 10, 6)
@@ -227,10 +227,10 @@ class CourseDialog(QWidget):
         
         # 기본 정보 입력 폼
         form_group = QGroupBox("📋 기본 정보")
-        form_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 10px; margin-top: 8px; }")
+        form_group.setStyleSheet("QGroupBox { font-size: 11pt; font-weight: bold; padding-top: 15px; margin-top: 8px; }")
         form_layout = QGridLayout()
-        form_layout.setSpacing(10)
-        form_layout.setVerticalSpacing(12)
+        form_layout.setSpacing(8)
+        form_layout.setVerticalSpacing(8)
         form_layout.setContentsMargins(10, 8, 10, 8)
         
         # 컬럼 비율 설정: 왼쪽(라벨:값) = 1:2, 오른쪽(라벨:값) = 1:4
