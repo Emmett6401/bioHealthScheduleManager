@@ -287,6 +287,11 @@ class TimetableCreateDialog(QWidget):
             return
         
         try:
+            # 데이터베이스 연결 확인
+            if not self.db.connect():
+                print("❌ 데이터베이스 연결 실패")
+                return
+            
             # 기존 시간표 확인
             query = """
                 SELECT COUNT(*) as count 
@@ -324,7 +329,16 @@ class TimetableCreateDialog(QWidget):
                         date_groups[date_key] = {'am': None, 'pm': None}
                     
                     # 시작 시간으로 AM/PM 구분
-                    if row['start_time'].hour < 12:  # 오전
+                    # start_time이 timedelta인 경우 처리
+                    start_time = row['start_time']
+                    if isinstance(start_time, timedelta):
+                        # timedelta를 시간으로 변환 (초 단위 → 시간)
+                        hour = start_time.seconds // 3600
+                    else:
+                        # datetime.time 객체인 경우
+                        hour = start_time.hour
+                    
+                    if hour < 12:  # 오전
                         date_groups[date_key]['am'] = row
                     else:  # 오후
                         date_groups[date_key]['pm'] = row
@@ -395,15 +409,16 @@ class TimetableCreateDialog(QWidget):
                     self.delete_btn.setEnabled(True)
                     print(f"✅ 기존 시간표 불러오기 완료: {len(self.current_timetable)}일")
                     
-                    # 사용자에게 알림
-                    QMessageBox.information(
-                        self, 
-                        "기존 시간표 로드", 
-                        f"저장된 시간표를 불러왔습니다.\n\n"
-                        f"• 총 {len(self.current_timetable)}일 일정\n"
-                        f"• 수정하려면 '자동 배정'을 다시 클릭하세요.\n"
-                        f"• 삭제하려면 '🗑️ 삭제' 버튼을 클릭하세요."
-                    )
+                    # 사용자에게 알림 (상태 표시줄이나 별도 레이블로 변경 가능)
+                    # 팝업은 자동 불러오기 시 방해가 될 수 있으므로 콘솔 로그만 사용
+                    # QMessageBox.information(
+                    #     self, 
+                    #     "기존 시간표 로드", 
+                    #     f"저장된 시간표를 불러왔습니다.\n\n"
+                    #     f"• 총 {len(self.current_timetable)}일 일정\n"
+                    #     f"• 수정하려면 '자동 배정'을 다시 클릭하세요.\n"
+                    #     f"• 삭제하려면 '🗑️ 삭제' 버튼을 클릭하세요."
+                    # )
             else:
                 # 기존 시간표가 없음
                 print(f"ℹ️  저장된 시간표가 없습니다. '자동 배정' 버튼을 클릭하세요.")
