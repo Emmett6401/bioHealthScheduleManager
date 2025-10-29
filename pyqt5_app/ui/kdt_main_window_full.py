@@ -41,8 +41,10 @@ class KDTMainWindowFull(QMainWindow):
         """UI 초기화"""
         self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
         
-        # 화면 크기 설정 (1280x800) 및 중앙 배치
-        self.resize(1280, 800)
+        # 화면 크기 설정 - 수직 최대화
+        from PyQt5.QtWidgets import QDesktopWidget
+        screen = QDesktopWidget().availableGeometry()
+        self.resize(1280, screen.height())
         self.center_on_screen()
         
         # 전체 애플리케이션에 고딕 폰트 적용
