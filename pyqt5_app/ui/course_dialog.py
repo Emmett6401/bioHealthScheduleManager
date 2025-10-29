@@ -264,6 +264,12 @@ class CourseDialog(QWidget):
         form_layout.setVerticalSpacing(12)
         form_layout.setContentsMargins(10, 8, 10, 8)
         
+        # 컬럼 비율 설정: 왼쪽(라벨:값) = 1:2, 오른쪽(라벨:값) = 1:4
+        form_layout.setColumnStretch(0, 1)  # 왼쪽 라벨
+        form_layout.setColumnStretch(1, 2)  # 왼쪽 값
+        form_layout.setColumnStretch(2, 1)  # 오른쪽 라벨
+        form_layout.setColumnStretch(3, 4)  # 오른쪽 값 (가장 넓게)
+        
         # 코드
         code_label = QLabel("코드:")
         code_label.setStyleSheet("font-size: 11pt;")
@@ -271,7 +277,6 @@ class CourseDialog(QWidget):
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("C-001 (자동 생성)")
         self.code_input.setReadOnly(True)
-        self.code_input.setMaximumWidth(200)
         self.code_input.setMinimumHeight(30)
         self.code_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.code_input, 0, 1)
@@ -288,29 +293,27 @@ class CourseDialog(QWidget):
         self.capacity.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.capacity, 0, 3)
         
-        # 반명칭 (왼쪽 절반)
+        # 반명칭 (왼쪽)
         name_label = QLabel("반명칭:")
         name_label.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(name_label, 1, 0)
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("예: 1반")
         self.name_input.setMinimumHeight(30)
-        self.name_input.setMaximumWidth(150)
         self.name_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.name_input, 1, 1)
         
-        # 강의장소 (왼쪽 절반)
+        # 강의장소 (왼쪽)
         location_label = QLabel("강의장소:")
         location_label.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(location_label, 2, 0)
         self.location_input = QLineEdit()
         self.location_input.setPlaceholderText("예: 본관 101호")
         self.location_input.setMinimumHeight(30)
-        self.location_input.setMaximumWidth(150)
         self.location_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.location_input, 2, 1)
         
-        # 특이사항 (왼쪽 절반)
+        # 특이사항 (왼쪽)
         notes_label = QLabel("특이사항:")
         notes_label.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(notes_label, 3, 0)
@@ -318,11 +321,10 @@ class CourseDialog(QWidget):
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
         self.notes_input.setMinimumHeight(60)
         self.notes_input.setMaximumHeight(60)
-        self.notes_input.setMaximumWidth(150)
         self.notes_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.notes_input, 3, 1)
         
-        # 선택된 과목 표시 (오른쪽 절반 - 세로로 길게)
+        # 선택된 과목 표시 (오른쪽 - 세로로 길게)
         subjects_label = QLabel("📚 선택된 과목:")
         subjects_label.setStyleSheet("font-size: 11pt; font-weight: bold;")
         form_layout.addWidget(subjects_label, 1, 2, Qt.AlignTop)
