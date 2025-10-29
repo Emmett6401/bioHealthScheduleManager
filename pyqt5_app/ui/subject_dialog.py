@@ -23,6 +23,7 @@ class SubjectDialog(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.db = DatabaseManager()
+        self.original_code = None  # 수정 시 원본 코드 저장
         self.init_ui()
         self.load_data()
         
@@ -39,8 +40,7 @@ class SubjectDialog(QWidget):
         # 코드
         form_layout.addWidget(QLabel("코드:"), 0, 0)
         self.code_input = QLineEdit()
-        self.code_input.setPlaceholderText("G-001 (자동 생성)")
-        self.code_input.setReadOnly(True)
+        self.code_input.setPlaceholderText("예: G-001, G-002")
         self.code_input.setMaximumWidth(150)
         form_layout.addWidget(self.code_input, 0, 1)
         
@@ -293,13 +293,16 @@ class SubjectDialog(QWidget):
         
     def on_row_selected(self, row, column):
         """행 선택 시"""
-        self.code_input.setText(self.table.item(row, 0).text())
+        code = self.table.item(row, 0).text()
+        self.code_input.setText(code)
         self.name_input.setText(self.table.item(row, 1).text())
         hours_text = self.table.item(row, 2).text().replace(' 시간', '')
         self.hours_input.setValue(int(hours_text))
         
+        # 원본 코드 저장 (수정 시 중복 체크에 사용)
+        self.original_code = code
+        
         # 강사 찾기 - 실제 DB에서 다시 조회
-        code = self.table.item(row, 0).text()
         query = "SELECT * FROM subjects WHERE code = %s"
         result = self.db.fetch_one(query, (code,))
         
@@ -335,9 +338,20 @@ class SubjectDialog(QWidget):
         
     def add_subject(self):
         """교과목 추가"""
+        code = self.code_input.text().strip()
         name = self.name_input.text().strip()
+        
+        if not code:
+            QMessageBox.warning(self, "경고", "코드를 입력하세요.")
+            return
+        
         if not name:
             QMessageBox.warning(self, "경고", "과목명을 입력하세요.")
+            return
+        
+        # 코드 중복 체크
+        if self.is_code_duplicate(code):
+            QMessageBox.warning(self, "경고", f"코드 '{code}'는 이미 사용 중입니다.\n다른 코드를 입력하세요.")
             return
         
         hours = self.hours_input.value()
@@ -349,8 +363,6 @@ class SubjectDialog(QWidget):
         reserve_instructor = self.reserve_combo.currentData()
         
         try:
-            code = self.db.get_next_code('subjects', CODE_PREFIX['subject'])
-            
             query = """
                 INSERT INTO subjects (code, name, hours, day_of_week, is_biweekly, week_offset,
                                      main_instructor, assistant_instructor, reserve_instructor) 
@@ -371,6 +383,26 @@ class SubjectDialog(QWidget):
             print("=" * 80)
             QMessageBox.critical(self, "오류", error_msg)
     
+    def is_code_duplicate(self, code, exclude_code=None):
+        """코드 중복 체크"""
+        try:
+            if not self.db.connect():
+                return False
+            
+            if exclude_code:
+                # 수정 시: 자기 자신 제외하고 중복 체크
+                query = "SELECT COUNT(*) as count FROM subjects WHERE code = %s AND code != %s"
+                result = self.db.fetch_one(query, (code, exclude_code))
+            else:
+                # 추가 시: 단순 중복 체크
+                query = "SELECT COUNT(*) as count FROM subjects WHERE code = %s"
+                result = self.db.fetch_one(query, (code,))
+            
+            return result and result['count'] > 0
+        except Exception as e:
+            print(f"코드 중복 체크 오류: {str(e)}")
+            return False
+    
     def update_subject(self):
         """교과목 수정"""
         code = self.code_input.text().strip()
@@ -379,6 +411,16 @@ class SubjectDialog(QWidget):
         if not code or not name:
             QMessageBox.warning(self, "경고", "코드와 과목명을 입력하세요.")
             return
+        
+        if not self.original_code:
+            QMessageBox.warning(self, "경고", "수정할 과목을 먼저 선택하세요.")
+            return
+        
+        # 코드가 변경된 경우 중복 체크
+        if code != self.original_code:
+            if self.is_code_duplicate(code, self.original_code):
+                QMessageBox.warning(self, "경고", f"코드 '{code}'는 이미 사용 중입니다.\n다른 코드를 입력하세요.")
+                return
         
         hours = self.hours_input.value()
         day_of_week = self.day_combo.currentIndex()
@@ -389,14 +431,30 @@ class SubjectDialog(QWidget):
         reserve_instructor = self.reserve_combo.currentData()
         
         try:
-            query = """
-                UPDATE subjects 
-                SET name = %s, hours = %s, day_of_week = %s, is_biweekly = %s, week_offset = %s,
-                    main_instructor = %s, assistant_instructor = %s, reserve_instructor = %s 
-                WHERE code = %s
-            """
-            self.db.execute_query(query, (name, hours, day_of_week, is_biweekly, week_offset,
-                                         main_instructor, assistant_instructor, reserve_instructor, code))
+            # 코드가 변경된 경우 UPDATE 대신 DELETE + INSERT
+            if code != self.original_code:
+                # 기존 레코드 삭제
+                delete_query = "DELETE FROM subjects WHERE code = %s"
+                self.db.execute_query(delete_query, (self.original_code,))
+                
+                # 새 코드로 삽입
+                insert_query = """
+                    INSERT INTO subjects (code, name, hours, day_of_week, is_biweekly, week_offset,
+                                         main_instructor, assistant_instructor, reserve_instructor) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                self.db.execute_query(insert_query, (code, name, hours, day_of_week, is_biweekly, week_offset,
+                                                     main_instructor, assistant_instructor, reserve_instructor))
+            else:
+                # 코드가 같으면 일반 UPDATE
+                query = """
+                    UPDATE subjects 
+                    SET name = %s, hours = %s, day_of_week = %s, is_biweekly = %s, week_offset = %s,
+                        main_instructor = %s, assistant_instructor = %s, reserve_instructor = %s 
+                    WHERE code = %s
+                """
+                self.db.execute_query(query, (name, hours, day_of_week, is_biweekly, week_offset,
+                                             main_instructor, assistant_instructor, reserve_instructor, code))
             
             QMessageBox.information(self, "성공", "교과목이 수정되었습니다.")
             self.clear_form()
@@ -451,4 +509,5 @@ class SubjectDialog(QWidget):
         self.main_combo.setCurrentIndex(0)
         self.assistant_combo.setCurrentIndex(0)
         self.reserve_combo.setCurrentIndex(0)
+        self.original_code = None  # 원본 코드 초기화
 
