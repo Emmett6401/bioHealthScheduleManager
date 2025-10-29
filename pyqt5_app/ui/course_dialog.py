@@ -314,10 +314,25 @@ class CourseDialog(QWidget):
         form_layout.addWidget(notes_label, 2, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
-        self.notes_input.setMinimumHeight(30)  # 15 → 30 (2배)
-        self.notes_input.setMaximumHeight(30)  # 최대 높이도 30px
+        self.notes_input.setMinimumHeight(30)
+        self.notes_input.setMaximumHeight(30)
         self.notes_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.notes_input, 2, 1, 1, 3)
+        
+        # 선택된 과목 표시
+        subjects_label = QLabel("📚 선택된 과목:")
+        subjects_label.setStyleSheet("font-size: 11pt; font-weight: bold;")
+        form_layout.addWidget(subjects_label, 3, 0)
+        self.selected_subjects_display = QLabel("과정을 선택하면 선택된 과목이 표시됩니다.")
+        self.selected_subjects_display.setStyleSheet(
+            "font-size: 10pt; color: #666; padding: 8px; "
+            "background-color: #F5F5F5; border-radius: 4px; border: 1px solid #DDD;"
+        )
+        self.selected_subjects_display.setWordWrap(True)
+        self.selected_subjects_display.setMinimumHeight(60)
+        self.selected_subjects_display.setMaximumHeight(80)
+        self.selected_subjects_display.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        form_layout.addWidget(self.selected_subjects_display, 3, 1, 1, 3)
         
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
@@ -645,6 +660,9 @@ class CourseDialog(QWidget):
             self.location_input.setText(result['location'] or '')
             self.notes_input.setText(result['notes'] or '')
             
+            # 선택된 과목 로드 및 표시
+            self.load_and_display_selected_subjects(result['code'])
+            
             # 일수 라벨 업데이트 (종료일 포함)
             lecture_days = (result['lecture_hours'] + 7) // 8
             project_days = (result['project_hours'] + 7) // 8
@@ -883,6 +901,53 @@ class CourseDialog(QWidget):
         self.workdays_label.setText("계산 필요")
         self.excluded_days_label.setText("계산 필요")
     
+    def load_and_display_selected_subjects(self, course_code):
+        """선택된 과목 로드 및 표시"""
+        try:
+            if not self.db.connect():
+                return
+            
+            # 과정에 선택된 과목 조회
+            query = """
+                SELECT s.code, s.name, s.hours, s.day_of_week
+                FROM subjects s
+                INNER JOIN course_subjects cs ON s.code = cs.subject_code
+                WHERE cs.course_code = %s
+                ORDER BY cs.display_order, s.code
+            """
+            subjects = self.db.fetch_all(query, (course_code,))
+            
+            if subjects:
+                day_names = ["월", "화", "수", "목", "금"]
+                subject_list = []
+                
+                for subject in subjects:
+                    day_str = day_names[subject['day_of_week']] if subject.get('day_of_week') is not None and 0 <= subject['day_of_week'] <= 4 else "-"
+                    subject_info = f"{subject['name']} ({subject['hours']}h, {day_str})"
+                    subject_list.append(subject_info)
+                
+                # 최대 5개까지만 표시, 나머지는 "외 N개"로 표시
+                if len(subject_list) <= 5:
+                    display_text = " • " + "\n • ".join(subject_list)
+                else:
+                    display_text = " • " + "\n • ".join(subject_list[:5]) + f"\n • ... 외 {len(subject_list) - 5}개"
+                
+                self.selected_subjects_display.setText(display_text)
+                self.selected_subjects_display.setStyleSheet(
+                    "font-size: 10pt; color: #333; padding: 8px; "
+                    "background-color: #E8F5E9; border-radius: 4px; border: 1px solid #4CAF50;"
+                )
+            else:
+                self.selected_subjects_display.setText("⚠️ 선택된 과목이 없습니다. '📚 과목 선택' 버튼을 클릭하세요.")
+                self.selected_subjects_display.setStyleSheet(
+                    "font-size: 10pt; color: #F57C00; padding: 8px; "
+                    "background-color: #FFF3E0; border-radius: 4px; border: 1px solid #FF9800;"
+                )
+                
+        except Exception as e:
+            print(f"과목 표시 오류: {str(e)}")
+            self.selected_subjects_display.setText("과목 정보를 불러올 수 없습니다.")
+    
     def open_subject_selection(self):
         """과목 선택 다이얼로그 열기"""
         selected_row = self.table.currentRow()
@@ -901,7 +966,9 @@ class CourseDialog(QWidget):
         
         # 과목 선택 다이얼로그 열기
         dialog = SubjectSelectionDialog(course_code, course_name, self)
-        dialog.exec_()
+        if dialog.exec_() == QDialog.Accepted:
+            # 다이얼로그가 저장되고 닫혔으면 과목 표시 업데이트
+            self.load_and_display_selected_subjects(course_code)
 
 
 class SubjectSelectionDialog(QDialog):
