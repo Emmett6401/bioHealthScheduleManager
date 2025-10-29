@@ -917,6 +917,11 @@ class CourseDialog(QWidget):
             """
             subjects = self.db.fetch_all(query, (course_code,))
             
+            # 디버그: 실제로 조회된 과목 수 출력
+            print(f"[DEBUG] 과정 {course_code}에 선택된 과목 수: {len(subjects) if subjects else 0}")
+            if subjects:
+                print(f"[DEBUG] 과목 목록: {[s['name'] for s in subjects]}")
+            
             if subjects:
                 day_names = ["월", "화", "수", "목", "금"]
                 subject_list = []
@@ -926,11 +931,8 @@ class CourseDialog(QWidget):
                     subject_info = f"{subject['name']} ({subject['hours']}h, {day_str})"
                     subject_list.append(subject_info)
                 
-                # 최대 5개까지만 표시, 나머지는 "외 N개"로 표시
-                if len(subject_list) <= 5:
-                    display_text = " • " + "\n • ".join(subject_list)
-                else:
-                    display_text = " • " + "\n • ".join(subject_list[:5]) + f"\n • ... 외 {len(subject_list) - 5}개"
+                # 모든 과목을 표시 (제한 없음)
+                display_text = " • " + "\n • ".join(subject_list)
                 
                 self.selected_subjects_display.setText(display_text)
                 self.selected_subjects_display.setStyleSheet(
@@ -946,6 +948,8 @@ class CourseDialog(QWidget):
                 
         except Exception as e:
             print(f"과목 표시 오류: {str(e)}")
+            import traceback
+            traceback.print_exc()
             self.selected_subjects_display.setText("과목 정보를 불러올 수 없습니다.")
     
     def open_subject_selection(self):
