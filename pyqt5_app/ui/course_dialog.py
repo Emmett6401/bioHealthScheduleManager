@@ -882,11 +882,13 @@ class CourseDialog(QWidget):
             if not self.db.connect():
                 return
             
-            # 과정에 선택된 과목 조회
+            # 과정에 선택된 과목 조회 (주강사 정보 포함)
             query = """
-                SELECT s.code, s.name, s.hours, s.day_of_week
+                SELECT s.code, s.name, s.hours, s.day_of_week,
+                       i.name as instructor_name
                 FROM subjects s
                 INNER JOIN course_subjects cs ON s.code = cs.subject_code
+                LEFT JOIN instructors i ON s.main_instructor = i.code
                 WHERE cs.course_code = %s
                 ORDER BY cs.display_order, s.code
             """
@@ -903,7 +905,9 @@ class CourseDialog(QWidget):
                 
                 for subject in subjects:
                     day_str = day_names[subject['day_of_week']] if subject.get('day_of_week') is not None and 0 <= subject['day_of_week'] <= 4 else "-"
-                    subject_info = f"{subject['name']} ({subject['hours']}h, {day_str})"
+                    instructor_name = subject.get('instructor_name') or "-"
+                    # 형식: 과목코드:과목명:주강사:요일
+                    subject_info = f"{subject['code']}:{subject['name']}:{instructor_name}:{day_str}"
                     subject_list.append(subject_info)
                 
                 # 모든 과목을 표시 (제한 없음)
