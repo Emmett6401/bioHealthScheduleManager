@@ -161,7 +161,31 @@ class DatabaseManager:
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """)
             
-            # 7. 프로젝트 관리 테이블
+            # 7. 학생 관리 테이블
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS students (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    code VARCHAR(10) UNIQUE COMMENT '학생코드 (S-001)',
+                    name VARCHAR(50) NOT NULL,
+                    birth_date VARCHAR(20) COMMENT '생년월일',
+                    gender VARCHAR(10) COMMENT '성별',
+                    phone VARCHAR(20) NOT NULL,
+                    email VARCHAR(100),
+                    address TEXT,
+                    interests TEXT COMMENT '관심 분야',
+                    education TEXT COMMENT '최종 학교/학년',
+                    introduction TEXT COMMENT '자기소개',
+                    campus VARCHAR(100) COMMENT '지원 캠퍼스',
+                    course_code VARCHAR(10) COMMENT '배정된 과정',
+                    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '등록일',
+                    notes TEXT COMMENT '비고',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (course_code) REFERENCES courses(code) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """)
+            
+            # 8. 프로젝트 관리 테이블
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS projects (
                     code VARCHAR(10) PRIMARY KEY,

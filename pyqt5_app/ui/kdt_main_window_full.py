@@ -22,6 +22,7 @@ from ui.instructor_dialog import InstructorDialog
 from ui.subject_dialog import SubjectDialog
 from ui.holiday_dialog import HolidayDialog
 from ui.course_dialog import CourseDialog
+from ui.student_dialog import StudentDialog
 from ui.project_dialog import ProjectDialog
 from ui.timetable_create_dialog import TimetableCreateDialog
 
@@ -146,6 +147,10 @@ class KDTMainWindowFull(QMainWindow):
         course_action = QAction('과정 관리', self)
         course_action.triggered.connect(self.show_course_dialog)
         course_menu.addAction(course_action)
+        
+        student_action = QAction('학생 관리', self)
+        student_action.triggered.connect(self.show_student_dialog)
+        course_menu.addAction(student_action)
         
         project_action = QAction('프로젝트 관리', self)
         project_action.triggered.connect(self.show_project_dialog)
@@ -402,6 +407,10 @@ class KDTMainWindowFull(QMainWindow):
     def show_course_dialog(self):
         """과정 관리 탭 표시"""
         self.open_or_focus_tab("과정 관리", CourseDialog, "🎓")
+        
+    def show_student_dialog(self):
+        """학생 관리 탭 표시"""
+        self.open_or_focus_tab("학생 관리", StudentDialog, "👨‍🎓")
         
     def show_project_dialog(self):
         """프로젝트 관리 탭 표시"""
