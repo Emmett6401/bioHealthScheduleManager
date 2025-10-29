@@ -216,8 +216,14 @@ class TimetableCreateDialog(QWidget):
             print(f"과정 정보 로드 오류: {str(e)}")
     
     def load_subjects(self):
-        """과목 목록 로드"""
+        """과목 목록 로드 (해당 과정에 선택된 과목만)"""
         try:
+            if not self.selected_course:
+                print("⚠️ 과정이 선택되지 않음")
+                self.subjects = []
+                return
+            
+            # 해당 과정에 선택된 과목만 조회
             query = """
                 SELECT s.code, s.name, s.hours, 
                        s.day_of_week, s.is_biweekly, s.week_offset,
@@ -225,12 +231,25 @@ class TimetableCreateDialog(QWidget):
                        i2.name as assistant_instructor_name,
                        i3.name as reserve_instructor_name
                 FROM subjects s
+                INNER JOIN course_subjects cs ON s.code = cs.subject_code
                 LEFT JOIN instructors i1 ON s.main_instructor = i1.code
                 LEFT JOIN instructors i2 ON s.assistant_instructor = i2.code
                 LEFT JOIN instructors i3 ON s.reserve_instructor = i3.code
-                ORDER BY s.hours ASC
+                WHERE cs.course_code = %s
+                ORDER BY cs.display_order, s.hours ASC
             """
-            self.subjects = self.db.fetch_all(query)
+            self.subjects = self.db.fetch_all(query, (self.selected_course,))
+            
+            # 선택된 과목이 없으면 경고
+            if not self.subjects:
+                QMessageBox.warning(
+                    self, 
+                    "과목 없음", 
+                    f"선택한 과정에 등록된 과목이 없습니다.\n\n"
+                    f"'과정 관리' 탭에서 해당 과정을 선택한 후\n"
+                    f"'📚 과목 선택' 버튼을 클릭하여 과목을 먼저 등록하세요."
+                )
+                return
             
             self.subject_table.setRowCount(len(self.subjects))
             

@@ -6,7 +6,7 @@
 from PyQt5.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLineEdit, QLabel,
                              QMessageBox, QHeaderView, QGroupBox, QGridLayout,
-                             QSpinBox, QTextEdit, QDateEdit, QFrame, QScrollArea)
+                             QSpinBox, QTextEdit, QDateEdit, QFrame, QScrollArea, QCheckBox)
 from PyQt5.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 import sys
@@ -349,6 +349,13 @@ class CourseDialog(QWidget):
         self.delete_btn.clicked.connect(self.delete_course)
         btn_layout.addWidget(self.delete_btn)
         
+        self.subject_select_btn = QPushButton("📚 과목 선택")
+        self.subject_select_btn.setStyleSheet("background-color: #FF9800; color: white; padding: 10px 20px; font-size: 11pt; font-weight: bold;")
+        self.subject_select_btn.setMinimumHeight(38)
+        self.subject_select_btn.clicked.connect(self.open_subject_selection)
+        self.subject_select_btn.setEnabled(False)  # 과정 선택 시 활성화
+        btn_layout.addWidget(self.subject_select_btn)
+        
         self.clear_btn = QPushButton("초기화")
         self.clear_btn.setStyleSheet("padding: 10px 20px; font-size: 11pt;")
         self.clear_btn.setMinimumHeight(38)
@@ -614,6 +621,9 @@ class CourseDialog(QWidget):
         """행 선택 시"""
         code = self.table.item(row, 0).text()
         
+        # 과목 선택 버튼 활성화
+        self.subject_select_btn.setEnabled(True)
+        
         # DB에서 전체 데이터 조회
         query = "SELECT * FROM courses WHERE code = %s"
         result = self.db.fetch_one(query, (code,))
@@ -873,4 +883,190 @@ class CourseDialog(QWidget):
         self.workdays_label.setText("계산 필요")
         self.excluded_days_label.setText("계산 필요")
     
+    def open_subject_selection(self):
+        """과목 선택 다이얼로그 열기"""
+        selected_row = self.table.currentRow()
+        if selected_row < 0:
+            QMessageBox.warning(self, "경고", "과정을 먼저 선택하세요.")
+            return
+        
+        # 선택된 과정 코드 가져오기
+        course_code_item = self.table.item(selected_row, 0)
+        if not course_code_item:
+            QMessageBox.warning(self, "경고", "과정 코드를 찾을 수 없습니다.")
+            return
+        
+        course_code = course_code_item.text()
+        course_name = self.table.item(selected_row, 1).text() if self.table.item(selected_row, 1) else ""
+        
+        # 과목 선택 다이얼로그 열기
+        dialog = SubjectSelectionDialog(course_code, course_name, self)
+        dialog.exec_()
+
+
+class SubjectSelectionDialog(QDialog):
+    """과정별 과목 선택 다이얼로그"""
+    
+    def __init__(self, course_code, course_name, parent=None):
+        super().__init__(parent)
+        self.course_code = course_code
+        self.course_name = course_name
+        self.db = DatabaseManager()
+        self.init_ui()
+        self.load_subjects()
+    
+    def init_ui(self):
+        """UI 초기화"""
+        self.setWindowTitle(f"과목 선택 - {self.course_name} ({self.course_code})")
+        self.setMinimumSize(900, 600)
+        
+        layout = QVBoxLayout()
+        
+        # 안내 메시지
+        info_label = QLabel(
+            f"📚 {self.course_name} 과정에 사용할 과목을 선택하세요.\n"
+            "체크박스를 선택/해제하여 과목을 추가/제거할 수 있습니다."
+        )
+        info_label.setStyleSheet("font-size: 11pt; padding: 10px; background-color: #E3F2FD; border-radius: 5px;")
+        layout.addWidget(info_label)
+        
+        # 과목 테이블
+        self.subject_table = QTableWidget()
+        self.subject_table.setColumnCount(7)
+        self.subject_table.setHorizontalHeaderLabels([
+            "선택", "과목코드", "과목명", "시수", "요일", "격주", "담당강사"
+        ])
+        self.subject_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.subject_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.subject_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        self.subject_table.setStyleSheet("font-size: 11pt;")
+        layout.addWidget(self.subject_table)
+        
+        # 버튼
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        
+        save_btn = QPushButton("💾 저장")
+        save_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px 20px; font-size: 11pt;")
+        save_btn.setMinimumHeight(40)
+        save_btn.clicked.connect(self.save_selections)
+        btn_layout.addWidget(save_btn)
+        
+        cancel_btn = QPushButton("취소")
+        cancel_btn.setStyleSheet("padding: 10px 20px; font-size: 11pt;")
+        cancel_btn.setMinimumHeight(40)
+        cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(cancel_btn)
+        
+        layout.addLayout(btn_layout)
+        
+        self.setLayout(layout)
+    
+    def load_subjects(self):
+        """모든 과목 로드 및 선택 상태 표시"""
+        try:
+            if not self.db.connect():
+                QMessageBox.critical(self, "오류", "데이터베이스 연결 실패")
+                return
+            
+            # 모든 과목 조회
+            query = """
+                SELECT s.code, s.name, s.hours, s.day_of_week, s.is_biweekly,
+                       i.name as instructor_name
+                FROM subjects s
+                LEFT JOIN instructors i ON s.main_instructor = i.code
+                ORDER BY s.code
+            """
+            all_subjects = self.db.fetch_all(query)
+            
+            # 현재 과정에 선택된 과목 조회
+            query_selected = """
+                SELECT subject_code
+                FROM course_subjects
+                WHERE course_code = %s
+            """
+            selected_subjects = self.db.fetch_all(query_selected, (self.course_code,))
+            selected_codes = set([s['subject_code'] for s in selected_subjects])
+            
+            # 테이블에 표시
+            self.subject_table.setRowCount(len(all_subjects))
+            
+            day_names = ["월", "화", "수", "목", "금"]
+            
+            for i, subject in enumerate(all_subjects):
+                # 체크박스
+                from PyQt5.QtWidgets import QCheckBox
+                checkbox = QCheckBox()
+                checkbox.setChecked(subject['code'] in selected_codes)
+                checkbox.setStyleSheet("margin-left: 20px;")
+                
+                checkbox_widget = QWidget()
+                checkbox_layout = QHBoxLayout(checkbox_widget)
+                checkbox_layout.addWidget(checkbox)
+                checkbox_layout.setAlignment(Qt.AlignCenter)
+                checkbox_layout.setContentsMargins(0, 0, 0, 0)
+                
+                self.subject_table.setCellWidget(i, 0, checkbox_widget)
+                
+                # 과목 정보
+                self.subject_table.setItem(i, 1, QTableWidgetItem(subject['code']))
+                self.subject_table.setItem(i, 2, QTableWidgetItem(subject['name']))
+                self.subject_table.setItem(i, 3, QTableWidgetItem(f"{subject['hours']}시간"))
+                
+                # 요일
+                day_str = day_names[subject['day_of_week']] if subject.get('day_of_week') is not None and 0 <= subject['day_of_week'] <= 4 else "-"
+                self.subject_table.setItem(i, 4, QTableWidgetItem(day_str))
+                
+                # 격주
+                biweekly_str = "격주" if subject.get('is_biweekly') else "매주"
+                self.subject_table.setItem(i, 5, QTableWidgetItem(biweekly_str))
+                
+                # 담당강사
+                instructor = subject.get('instructor_name') or '-'
+                self.subject_table.setItem(i, 6, QTableWidgetItem(instructor))
+            
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"과목 로드 실패: {str(e)}")
+            import traceback
+            traceback.print_exc()
+    
+    def save_selections(self):
+        """선택된 과목 저장"""
+        try:
+            if not self.db.connect():
+                QMessageBox.critical(self, "오류", "데이터베이스 연결 실패")
+                return
+            
+            # 기존 선택 삭제
+            delete_query = "DELETE FROM course_subjects WHERE course_code = %s"
+            self.db.execute_query(delete_query, (self.course_code,))
+            
+            # 새로운 선택 저장
+            insert_query = """
+                INSERT INTO course_subjects (course_code, subject_code, display_order)
+                VALUES (%s, %s, %s)
+            """
+            
+            selected_count = 0
+            for i in range(self.subject_table.rowCount()):
+                checkbox_widget = self.subject_table.cellWidget(i, 0)
+                checkbox = checkbox_widget.findChild(QCheckBox)
+                
+                if checkbox and checkbox.isChecked():
+                    subject_code = self.subject_table.item(i, 1).text()
+                    self.db.execute_query(insert_query, (self.course_code, subject_code, i))
+                    selected_count += 1
+            
+            QMessageBox.information(
+                self, 
+                "완료", 
+                f"{selected_count}개 과목이 {self.course_name} 과정에 저장되었습니다."
+            )
+            self.accept()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"저장 실패: {str(e)}")
+            import traceback
+            traceback.print_exc()
+
 
