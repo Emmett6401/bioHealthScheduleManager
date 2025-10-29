@@ -236,7 +236,6 @@ class TimetableCreateDialog(QWidget):
             # 과목별 색상 생성
             self.subject_colors = {}
             colors = self.generate_colors(len(self.subjects))
-            print(f"\n🎨 과목 색상 생성 시작 (총 {len(self.subjects)}개 과목)")
             
             for i, subject in enumerate(self.subjects):
                 # 과목명
@@ -268,9 +267,6 @@ class TimetableCreateDialog(QWidget):
                 color_item = QTableWidgetItem()
                 color_item.setBackground(QBrush(color))
                 self.subject_table.setItem(i, 6, color_item)
-                
-                # 디버깅: 색상 할당 확인
-                print(f"  ✓ {subject['code']}: {subject['name'][:15]:15} → RGB({color.red():3}, {color.green():3}, {color.blue():3})")
                 
         except Exception as e:
             QMessageBox.critical(self, "오류", f"과목 로드 실패: {str(e)}")
@@ -571,11 +567,6 @@ class TimetableCreateDialog(QWidget):
     
     def display_timetable(self, timetable):
         """시간표 테이블에 표시"""
-        print(f"\n📊 시간표 표시 시작 (총 {len(timetable)}일)")
-        print(f"🎨 사용 가능한 과목 색상: {len(self.subject_colors)}개")
-        if self.subject_colors:
-            print(f"   색상 딕셔너리 키: {list(self.subject_colors.keys())}")
-        
         self.timetable_table.setRowCount(len(timetable))
         
         # 주차별 파스텔 오렌지 색상 팔레트
@@ -669,13 +660,6 @@ class TimetableCreateDialog(QWidget):
                 am_item = QTableWidgetItem(am_text)
                 am_item.setToolTip(f"{am_name}\n오늘 AM: {am_hours_today}h\n누적: {am_accumulated}h / {am_total}h")
                 am_color = self.subject_colors.get(am_code, QColor(200, 200, 200))
-                
-                # 디버깅: 색상 적용 확인
-                if am_code in self.subject_colors:
-                    print(f"AM 색상 적용: {am_code} ({am_name}) → RGB({am_color.red()}, {am_color.green()}, {am_color.blue()})")
-                else:
-                    print(f"⚠️  AM 색상 없음: {am_code} ({am_name}) → 기본 회색 사용")
-                
                 am_item.setBackground(QBrush(am_color))
                 am_item.setTextAlignment(Qt.AlignCenter)
                 self.timetable_table.setItem(i, 2, am_item)
@@ -708,13 +692,6 @@ class TimetableCreateDialog(QWidget):
                 pm_item = QTableWidgetItem(pm_text)
                 pm_item.setToolTip(f"{pm_name}\n오늘 PM: {pm_hours_today}h\n누적: {pm_accumulated}h / {pm_total}h")
                 pm_color = self.subject_colors.get(pm_code, QColor(200, 200, 200))
-                
-                # 디버깅: 색상 적용 확인
-                if pm_code in self.subject_colors:
-                    print(f"PM 색상 적용: {pm_code} ({pm_name}) → RGB({pm_color.red()}, {pm_color.green()}, {pm_color.blue()})")
-                else:
-                    print(f"⚠️  PM 색상 없음: {pm_code} ({pm_name}) → 기본 회색 사용")
-                
                 pm_item.setBackground(QBrush(pm_color))
                 pm_item.setTextAlignment(Qt.AlignCenter)
                 self.timetable_table.setItem(i, 3, pm_item)
