@@ -192,6 +192,7 @@ class TimetableCreateDialog(QWidget):
         self.load_course_info()
         self.load_subjects()
         self.load_holidays()
+        self.load_existing_timetable()  # 기존 시간표 불러오기
         self.auto_btn.setEnabled(True)
     
     def load_course_info(self):
@@ -279,6 +280,143 @@ class TimetableCreateDialog(QWidget):
             self.holidays = set([row['holiday_date'] for row in rows])
         except Exception as e:
             print(f"공휴일 로드 오류: {str(e)}")
+    
+    def load_existing_timetable(self):
+        """데이터베이스에서 기존 시간표 불러오기"""
+        if not self.selected_course:
+            return
+        
+        try:
+            # 기존 시간표 확인
+            query = """
+                SELECT COUNT(*) as count 
+                FROM timetables 
+                WHERE course_code = %s AND type = 'lecture'
+            """
+            result = self.db.fetch_one(query, (self.selected_course,))
+            
+            if result and result['count'] > 0:
+                # 기존 시간표가 있으면 불러오기
+                print(f"\n📋 기존 시간표 발견: {result['count']}개 항목")
+                
+                # 시간표 데이터 조회
+                query = """
+                    SELECT t.class_date, t.start_time, t.end_time,
+                           t.subject_code, s.name as subject_name, s.hours as total_hours,
+                           i1.name as main_instructor_name,
+                           i2.name as assistant_instructor_name,
+                           i3.name as reserve_instructor_name
+                    FROM timetables t
+                    LEFT JOIN subjects s ON t.subject_code = s.code
+                    LEFT JOIN instructors i1 ON s.main_instructor = i1.code
+                    LEFT JOIN instructors i2 ON s.assistant_instructor = i2.code
+                    LEFT JOIN instructors i3 ON s.reserve_instructor = i3.code
+                    WHERE t.course_code = %s AND t.type = 'lecture'
+                    ORDER BY t.class_date, t.start_time
+                """
+                rows = self.db.fetch_all(query, (self.selected_course,))
+                
+                # 날짜별로 그룹화 (AM/PM 합치기)
+                date_groups = {}
+                for row in rows:
+                    date_key = row['class_date']
+                    if date_key not in date_groups:
+                        date_groups[date_key] = {'am': None, 'pm': None}
+                    
+                    # 시작 시간으로 AM/PM 구분
+                    if row['start_time'].hour < 12:  # 오전
+                        date_groups[date_key]['am'] = row
+                    else:  # 오후
+                        date_groups[date_key]['pm'] = row
+                
+                # current_timetable 형식으로 변환
+                self.current_timetable = []
+                for date_key in sorted(date_groups.keys()):
+                    am_row = date_groups[date_key]['am']
+                    pm_row = date_groups[date_key]['pm']
+                    
+                    # AM 과목 생성
+                    am_subject = None
+                    if am_row:
+                        am_subject = {
+                            'code': am_row['subject_code'],
+                            'name': am_row['subject_name'],
+                            'total_hours': am_row['total_hours'],
+                            'main_instructor': am_row.get('main_instructor_name') or '-',
+                            'assistant_instructor': am_row.get('assistant_instructor_name') or '-',
+                            'reserve_instructor': am_row.get('reserve_instructor_name') or '-',
+                            'hours': 4  # 오전은 기본 4시간
+                        }
+                    else:
+                        am_subject = {
+                            'code': '',
+                            'name': '-',
+                            'total_hours': 0,
+                            'main_instructor': '-',
+                            'assistant_instructor': '-',
+                            'reserve_instructor': '-',
+                            'hours': 0
+                        }
+                    
+                    # PM 과목 생성
+                    pm_subject = None
+                    if pm_row:
+                        pm_subject = {
+                            'code': pm_row['subject_code'],
+                            'name': pm_row['subject_name'],
+                            'total_hours': pm_row['total_hours'],
+                            'main_instructor': pm_row.get('main_instructor_name') or '-',
+                            'assistant_instructor': pm_row.get('assistant_instructor_name') or '-',
+                            'reserve_instructor': pm_row.get('reserve_instructor_name') or '-',
+                            'hours': 4  # 오후는 기본 4시간
+                        }
+                    else:
+                        pm_subject = {
+                            'code': '',
+                            'name': '-',
+                            'total_hours': 0,
+                            'main_instructor': '-',
+                            'assistant_instructor': '-',
+                            'reserve_instructor': '-',
+                            'hours': 0
+                        }
+                    
+                    self.current_timetable.append({
+                        'date': date_key,
+                        'am_subject': am_subject,
+                        'pm_subject': pm_subject
+                    })
+                
+                # 테이블에 표시
+                if self.current_timetable:
+                    self.display_timetable(self.current_timetable)
+                    self.save_btn.setEnabled(True)
+                    self.export_btn.setEnabled(True)
+                    self.delete_btn.setEnabled(True)
+                    print(f"✅ 기존 시간표 불러오기 완료: {len(self.current_timetable)}일")
+                    
+                    # 사용자에게 알림
+                    QMessageBox.information(
+                        self, 
+                        "기존 시간표 로드", 
+                        f"저장된 시간표를 불러왔습니다.\n\n"
+                        f"• 총 {len(self.current_timetable)}일 일정\n"
+                        f"• 수정하려면 '자동 배정'을 다시 클릭하세요.\n"
+                        f"• 삭제하려면 '🗑️ 삭제' 버튼을 클릭하세요."
+                    )
+            else:
+                # 기존 시간표가 없음
+                print(f"ℹ️  저장된 시간표가 없습니다. '자동 배정' 버튼을 클릭하세요.")
+                self.timetable_table.setRowCount(0)
+                self.current_timetable = []
+                self.save_btn.setEnabled(False)
+                self.export_btn.setEnabled(False)
+                self.delete_btn.setEnabled(False)
+                
+        except Exception as e:
+            print(f"❌ 시간표 불러오기 오류: {str(e)}")
+            import traceback
+            traceback.print_exc()
     
     def generate_colors(self, count):
         """과목별 고유 파스텔 색상 생성"""
