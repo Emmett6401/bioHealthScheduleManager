@@ -621,10 +621,11 @@ class CourseDialog(QWidget):
             self.code_input.setText(result['code'])
             self.name_input.setText(result['name'])
             
-            # 시작일 설정
+            # 시작일 설정 및 원본 저장
             if result.get('start_date') and result['start_date'] is not None:
                 q_date = QDate(result['start_date'].year, result['start_date'].month, result['start_date'].day)
                 self.start_date.setDate(q_date)
+                self.original_start_date = result['start_date']  # 원본 시작일 저장
             
             self.lecture_hours.setValue(result['lecture_hours'])
             self.project_hours.setValue(result['project_hours'])
@@ -764,6 +765,21 @@ class CourseDialog(QWidget):
         if not hasattr(self, 'calculated_lecture_end') or not hasattr(self, 'calculated_project_end') or not hasattr(self, 'calculated_internship_end'):
             QMessageBox.warning(self, "경고", "일정 자동계산 버튼을 클릭하여 일정을 먼저 계산하세요.")
             return
+        
+        # 시작일이 변경되었는지 확인
+        if hasattr(self, 'original_start_date'):
+            if start_date != self.original_start_date:
+                reply = QMessageBox.question(
+                    self, "확인",
+                    "시작일이 변경되었습니다.\n일정 자동계산을 먼저 수행하시겠습니까?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if reply == QMessageBox.Yes:
+                    self.calculate_schedule()
+                    # 재계산 후 다시 날짜 가져오기 (아래 코드에서 사용됨)
+                else:
+                    QMessageBox.warning(self, "경고", "시작일 변경 시 일정을 다시 계산해야 합니다.")
+                    return
         
         lecture_end = self.calculated_lecture_end.strftime("%Y-%m-%d")
         project_end = self.calculated_project_end.strftime("%Y-%m-%d")
