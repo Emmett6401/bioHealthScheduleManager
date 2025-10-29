@@ -276,3 +276,209 @@ class DatabaseManager:
         except Exception as e:
             print(f"코드 생성 오류: {str(e)}")
             return f"{prefix}001"
+    
+    # ==================== 면담 관리 메서드 ====================
+    
+    def add_consultation(self, consultation_data):
+        """면담 정보 추가"""
+        try:
+            query = """
+                INSERT INTO consultations (
+                    student_id, consultation_date, location, main_topic, 
+                    content, consultant_name, next_consultation_date, 
+                    consultation_type, status
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            params = (
+                consultation_data['student_id'],
+                consultation_data['consultation_date'],
+                consultation_data.get('location', ''),
+                consultation_data.get('main_topic', ''),
+                consultation_data.get('content', ''),
+                consultation_data.get('consultant_name', ''),
+                consultation_data.get('next_consultation_date'),
+                consultation_data.get('consultation_type', '정기'),
+                consultation_data.get('status', '완료')
+            )
+            cursor = self.execute_query(query, params)
+            if cursor:
+                return cursor.lastrowid
+            return None
+        except Exception as e:
+            print(f"면담 추가 오류: {str(e)}")
+            return None
+    
+    def update_consultation(self, consultation_id, consultation_data):
+        """면담 정보 수정"""
+        try:
+            query = """
+                UPDATE consultations SET
+                    consultation_date = %s,
+                    location = %s,
+                    main_topic = %s,
+                    content = %s,
+                    consultant_name = %s,
+                    next_consultation_date = %s,
+                    consultation_type = %s,
+                    status = %s
+                WHERE id = %s
+            """
+            params = (
+                consultation_data['consultation_date'],
+                consultation_data.get('location', ''),
+                consultation_data.get('main_topic', ''),
+                consultation_data.get('content', ''),
+                consultation_data.get('consultant_name', ''),
+                consultation_data.get('next_consultation_date'),
+                consultation_data.get('consultation_type', '정기'),
+                consultation_data.get('status', '완료'),
+                consultation_id
+            )
+            cursor = self.execute_query(query, params)
+            return cursor is not None
+        except Exception as e:
+            print(f"면담 수정 오류: {str(e)}")
+            return False
+    
+    def delete_consultation(self, consultation_id):
+        """면담 정보 삭제"""
+        try:
+            query = "DELETE FROM consultations WHERE id = %s"
+            cursor = self.execute_query(query, (consultation_id,))
+            return cursor is not None
+        except Exception as e:
+            print(f"면담 삭제 오류: {str(e)}")
+            return False
+    
+    def get_consultation(self, consultation_id):
+        """특정 면담 정보 조회"""
+        try:
+            query = """
+                SELECT c.*, s.name as student_name, s.code as student_code
+                FROM consultations c
+                LEFT JOIN students s ON c.student_id = s.id
+                WHERE c.id = %s
+            """
+            return self.fetch_one(query, (consultation_id,))
+        except Exception as e:
+            print(f"면담 조회 오류: {str(e)}")
+            return None
+    
+    def get_consultations_by_student(self, student_id):
+        """특정 학생의 모든 면담 조회"""
+        try:
+            query = """
+                SELECT c.*, s.name as student_name, s.code as student_code
+                FROM consultations c
+                LEFT JOIN students s ON c.student_id = s.id
+                WHERE c.student_id = %s
+                ORDER BY c.consultation_date DESC
+            """
+            return self.fetch_all(query, (student_id,))
+        except Exception as e:
+            print(f"학생 면담 조회 오류: {str(e)}")
+            return []
+    
+    def get_all_consultations(self):
+        """모든 면담 조회"""
+        try:
+            query = """
+                SELECT c.*, s.name as student_name, s.code as student_code
+                FROM consultations c
+                LEFT JOIN students s ON c.student_id = s.id
+                ORDER BY c.consultation_date DESC
+            """
+            return self.fetch_all(query)
+        except Exception as e:
+            print(f"면담 목록 조회 오류: {str(e)}")
+            return []
+    
+    def get_upcoming_consultations(self):
+        """예정된 면담 조회 (다음 면담일이 있는 경우)"""
+        try:
+            query = """
+                SELECT c.*, s.name as student_name, s.code as student_code
+                FROM consultations c
+                LEFT JOIN students s ON c.student_id = s.id
+                WHERE c.next_consultation_date IS NOT NULL 
+                AND c.next_consultation_date >= CURDATE()
+                ORDER BY c.next_consultation_date ASC
+            """
+            return self.fetch_all(query)
+        except Exception as e:
+            print(f"예정 면담 조회 오류: {str(e)}")
+            return []
+    
+    def add_consultation_photo(self, consultation_id, photo_path, description=''):
+        """면담 사진 추가"""
+        try:
+            query = """
+                INSERT INTO consultation_photos (consultation_id, photo_path, photo_description)
+                VALUES (%s, %s, %s)
+            """
+            cursor = self.execute_query(query, (consultation_id, photo_path, description))
+            if cursor:
+                return cursor.lastrowid
+            return None
+        except Exception as e:
+            print(f"면담 사진 추가 오류: {str(e)}")
+            return None
+    
+    def delete_consultation_photo(self, photo_id):
+        """면담 사진 삭제"""
+        try:
+            query = "DELETE FROM consultation_photos WHERE id = %s"
+            cursor = self.execute_query(query, (photo_id,))
+            return cursor is not None
+        except Exception as e:
+            print(f"면담 사진 삭제 오류: {str(e)}")
+            return False
+    
+    def get_consultation_photos(self, consultation_id):
+        """특정 면담의 모든 사진 조회"""
+        try:
+            query = """
+                SELECT * FROM consultation_photos
+                WHERE consultation_id = %s
+                ORDER BY uploaded_at DESC
+            """
+            return self.fetch_all(query, (consultation_id,))
+        except Exception as e:
+            print(f"면담 사진 조회 오류: {str(e)}")
+            return []
+    
+    def search_consultations(self, keyword='', consultation_type=None, date_from=None, date_to=None):
+        """면담 검색"""
+        try:
+            query = """
+                SELECT c.*, s.name as student_name, s.code as student_code
+                FROM consultations c
+                LEFT JOIN students s ON c.student_id = s.id
+                WHERE 1=1
+            """
+            params = []
+            
+            if keyword:
+                query += """ AND (s.name LIKE %s OR c.main_topic LIKE %s 
+                            OR c.content LIKE %s OR c.consultant_name LIKE %s)"""
+                keyword_param = f"%{keyword}%"
+                params.extend([keyword_param, keyword_param, keyword_param, keyword_param])
+            
+            if consultation_type:
+                query += " AND c.consultation_type = %s"
+                params.append(consultation_type)
+            
+            if date_from:
+                query += " AND c.consultation_date >= %s"
+                params.append(date_from)
+            
+            if date_to:
+                query += " AND c.consultation_date <= %s"
+                params.append(date_to)
+            
+            query += " ORDER BY c.consultation_date DESC"
+            
+            return self.fetch_all(query, tuple(params) if params else None)
+        except Exception as e:
+            print(f"면담 검색 오류: {str(e)}")
+            return []

@@ -156,6 +156,13 @@ class KDTMainWindowFull(QMainWindow):
         project_action.triggered.connect(self.show_project_dialog)
         course_menu.addAction(project_action)
         
+        course_menu.addSeparator()
+        
+        # 면담 관리 추가
+        consultation_action = QAction('학생 면담 관리', self)
+        consultation_action.triggered.connect(self.show_consultation_dialog)
+        course_menu.addAction(consultation_action)
+        
         # 시간표 메뉴
         timetable_menu = menubar.addMenu('시간표')
         
@@ -421,9 +428,10 @@ class KDTMainWindowFull(QMainWindow):
         """프로젝트 관리 탭 표시"""
         self.open_or_focus_tab("프로젝트 관리", ProjectDialog, "💼")
     
-    def show_student_dialog(self):
-        """학생 관리 탭 표시"""
-        self.open_or_focus_tab("학생 관리", StudentDialog, "👨‍🎓")
+    def show_consultation_dialog(self):
+        """면담 관리 탭 표시"""
+        from ui.consultation_dialog import ConsultationDialog
+        self.open_or_focus_tab("학생 면담 관리", ConsultationDialog, "💬")
     
     def show_timetable_create_dialog(self):
         """시간표 작성 탭 표시"""
