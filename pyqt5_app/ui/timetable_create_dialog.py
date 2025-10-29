@@ -588,20 +588,6 @@ class TimetableCreateDialog(QWidget):
             am_subject = entry.get('am_subject', {})
             pm_subject = entry.get('pm_subject', {})
             
-            # 누적 시수 계산 (오전)
-            if am_subject:
-                am_code = am_subject['code']
-                if am_code not in subject_accumulated:
-                    subject_accumulated[am_code] = 0
-                subject_accumulated[am_code] += am_subject['hours']
-            
-            # 누적 시수 계산 (오후)
-            if pm_subject:
-                pm_code = pm_subject['code']
-                if pm_code not in subject_accumulated:
-                    subject_accumulated[pm_code] = 0
-                subject_accumulated[pm_code] += pm_subject['hours']
-            
             # 주차 계산 (시작일 기준)
             current_date = entry['date']
             days_diff = (current_date - start_date).days
@@ -647,11 +633,17 @@ class TimetableCreateDialog(QWidget):
             self.timetable_table.setItem(i, 1, date_item)
             
             # 오전 과목 표시
-            if am_subject:
+            if am_subject and am_subject.get('code'):
                 am_code = am_subject['code']
                 am_name = am_subject['name']
                 am_total = am_subject['total_hours']
-                am_accumulated = subject_accumulated.get(am_code, 0)
+                am_hours_today = am_subject.get('hours', 0)
+                
+                # 누적 시수 계산 (오전)
+                if am_code not in subject_accumulated:
+                    subject_accumulated[am_code] = 0
+                subject_accumulated[am_code] += am_hours_today
+                am_accumulated = subject_accumulated[am_code]
                 
                 # 과목명 축약
                 if len(am_name) > 10:
@@ -660,7 +652,6 @@ class TimetableCreateDialog(QWidget):
                     am_short = am_name
                 
                 # 누적 시수 표시
-                am_hours_today = am_subject.get('hours', 0)
                 am_text = f"{am_short}..({am_accumulated}h/{am_total}h)"
                 am_item = QTableWidgetItem(am_text)
                 am_item.setToolTip(f"{am_name}\n오늘 AM: {am_hours_today}h\n누적: {am_accumulated}h / {am_total}h")
@@ -672,11 +663,17 @@ class TimetableCreateDialog(QWidget):
                 self.timetable_table.setItem(i, 2, QTableWidgetItem("-"))
             
             # 오후 과목 표시
-            if pm_subject:
+            if pm_subject and pm_subject.get('code'):
                 pm_code = pm_subject['code']
                 pm_name = pm_subject['name']
                 pm_total = pm_subject['total_hours']
-                pm_accumulated = subject_accumulated.get(pm_code, 0)
+                pm_hours_today = pm_subject.get('hours', 0)
+                
+                # 누적 시수 계산 (오후)
+                if pm_code not in subject_accumulated:
+                    subject_accumulated[pm_code] = 0
+                subject_accumulated[pm_code] += pm_hours_today
+                pm_accumulated = subject_accumulated[pm_code]
                 
                 # 과목명 축약
                 if len(pm_name) > 10:
@@ -685,7 +682,6 @@ class TimetableCreateDialog(QWidget):
                     pm_short = pm_name
                 
                 # 누적 시수 표시
-                pm_hours_today = pm_subject.get('hours', 0)
                 pm_text = f"{pm_short}..({pm_accumulated}h/{pm_total}h)"
                 pm_item = QTableWidgetItem(pm_text)
                 pm_item.setToolTip(f"{pm_name}\n오늘 PM: {pm_hours_today}h\n누적: {pm_accumulated}h / {pm_total}h")

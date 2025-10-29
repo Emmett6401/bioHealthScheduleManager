@@ -77,12 +77,12 @@ class KDTMainWindowFull(QMainWindow):
         central_widget.setLayout(layout)
     
     def center_on_screen(self):
-        """윈도우를 화면 중앙에 배치"""
+        """윈도우를 화면 중앙에 배치 (수직은 맨 위부터)"""
         from PyQt5.QtWidgets import QDesktopWidget
         screen = QDesktopWidget().screenGeometry()
         window = self.geometry()
         x = (screen.width() - window.width()) // 2
-        y = (screen.height() - window.height()) // 2
+        y = 0  # 화면 맨 위부터 시작
         self.move(x, y)
         
     def create_header(self):
