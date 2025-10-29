@@ -776,7 +776,7 @@ class CourseDialog(QWidget):
                     QMessageBox.Yes | QMessageBox.No
                 )
                 if reply == QMessageBox.Yes:
-                    self.calculate_schedule()
+                    self.calculate_dates()  # 올바른 메서드 이름
                     # 재계산 후 다시 날짜 가져오기 (아래 코드에서 사용됨)
                 else:
                     QMessageBox.warning(self, "경고", "시작일 변경 시 일정을 다시 계산해야 합니다.")
