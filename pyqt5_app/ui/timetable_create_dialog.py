@@ -148,9 +148,6 @@ class TimetableCreateDialog(QWidget):
                 font-size: 11pt;
                 gridline-color: #CCCCCC;
             }
-            QTableWidget::item {
-                border: 1px solid #CCCCCC;
-            }
         """)
         self.timetable_table.setShowGrid(True)
         self.timetable_table.cellClicked.connect(self.on_cell_clicked)
