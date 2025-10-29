@@ -271,6 +271,9 @@ class TimetableCreateDialog(QWidget):
                 color_item.setBackground(QBrush(color))
                 self.subject_table.setItem(i, 6, color_item)
                 
+                # 디버깅: 색상 할당 확인
+                print(f"과목 색상 할당: {subject['code']} ({subject['name']}) → RGB({color.red()}, {color.green()}, {color.blue()})")
+                
         except Exception as e:
             QMessageBox.critical(self, "오류", f"과목 로드 실패: {str(e)}")
     
@@ -656,6 +659,13 @@ class TimetableCreateDialog(QWidget):
                 am_item = QTableWidgetItem(am_text)
                 am_item.setToolTip(f"{am_name}\n오늘 AM: {am_hours_today}h\n누적: {am_accumulated}h / {am_total}h")
                 am_color = self.subject_colors.get(am_code, QColor(200, 200, 200))
+                
+                # 디버깅: 색상 적용 확인
+                if am_code in self.subject_colors:
+                    print(f"AM 색상 적용: {am_code} ({am_name}) → RGB({am_color.red()}, {am_color.green()}, {am_color.blue()})")
+                else:
+                    print(f"⚠️  AM 색상 없음: {am_code} ({am_name}) → 기본 회색 사용")
+                
                 am_item.setBackground(QBrush(am_color))
                 am_item.setTextAlignment(Qt.AlignCenter)
                 self.timetable_table.setItem(i, 2, am_item)
@@ -686,6 +696,13 @@ class TimetableCreateDialog(QWidget):
                 pm_item = QTableWidgetItem(pm_text)
                 pm_item.setToolTip(f"{pm_name}\n오늘 PM: {pm_hours_today}h\n누적: {pm_accumulated}h / {pm_total}h")
                 pm_color = self.subject_colors.get(pm_code, QColor(200, 200, 200))
+                
+                # 디버깅: 색상 적용 확인
+                if pm_code in self.subject_colors:
+                    print(f"PM 색상 적용: {pm_code} ({pm_name}) → RGB({pm_color.red()}, {pm_color.green()}, {pm_color.blue()})")
+                else:
+                    print(f"⚠️  PM 색상 없음: {pm_code} ({pm_name}) → 기본 회색 사용")
+                
                 pm_item.setBackground(QBrush(pm_color))
                 pm_item.setTextAlignment(Qt.AlignCenter)
                 self.timetable_table.setItem(i, 3, pm_item)
