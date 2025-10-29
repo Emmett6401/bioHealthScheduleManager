@@ -837,9 +837,23 @@ class CourseDialog(QWidget):
         self.capacity.setValue(30)
         self.location_input.clear()
         self.notes_input.clear()
-        self.lecture_end_date.clear()
-        self.project_end_date.clear()
-        self.internship_end_date.clear()
-        self.final_end_date.clear()
+        
+        # 계산된 날짜 인스턴스 변수 초기화
+        if hasattr(self, 'calculated_lecture_end'):
+            delattr(self, 'calculated_lecture_end')
+        if hasattr(self, 'calculated_project_end'):
+            delattr(self, 'calculated_project_end')
+        if hasattr(self, 'calculated_internship_end'):
+            delattr(self, 'calculated_internship_end')
+        if hasattr(self, 'calculated_final_end'):
+            delattr(self, 'calculated_final_end')
+        
+        # 라벨 초기화
+        self.lecture_days_label.setText("약 33일")
+        self.project_days_label.setText("약 28일")
+        self.internship_days_label.setText("약 15일")
+        self.total_days_label.setText("계산 필요")
+        self.workdays_label.setText("계산 필요")
+        self.excluded_days_label.setText("계산 필요")
     
 
