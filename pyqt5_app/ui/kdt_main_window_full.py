@@ -223,6 +223,11 @@ class KDTMainWindowFull(QMainWindow):
         
         toolbar.addSeparator()
         
+        # 학생 관리
+        toolbar.addAction(QAction('👨‍🎓 학생 관리', self, triggered=self.show_student_dialog))
+        
+        toolbar.addSeparator()
+        
         # Excel
         toolbar.addAction(QAction('📊 Excel 내보내기', self, triggered=self.export_excel))
         
@@ -415,6 +420,10 @@ class KDTMainWindowFull(QMainWindow):
     def show_project_dialog(self):
         """프로젝트 관리 탭 표시"""
         self.open_or_focus_tab("프로젝트 관리", ProjectDialog, "💼")
+    
+    def show_student_dialog(self):
+        """학생 관리 탭 표시"""
+        self.open_or_focus_tab("학생 관리", StudentDialog, "👨‍🎓")
     
     def show_timetable_create_dialog(self):
         """시간표 작성 탭 표시"""
