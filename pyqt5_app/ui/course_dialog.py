@@ -314,8 +314,8 @@ class CourseDialog(QWidget):
         form_layout.addWidget(notes_label, 2, 0)
         self.notes_input = QTextEdit()
         self.notes_input.setPlaceholderText("과정 관련 특이사항을 입력하세요")
-        self.notes_input.setMinimumHeight(15)  # 60 → 15 (25%로 축소)
-        self.notes_input.setMaximumHeight(15)  # 최대 높이도 제한
+        self.notes_input.setMinimumHeight(30)  # 15 → 30 (2배)
+        self.notes_input.setMaximumHeight(30)  # 최대 높이도 30px
         self.notes_input.setStyleSheet("font-size: 11pt;")
         form_layout.addWidget(self.notes_input, 2, 1, 1, 3)
         
