@@ -239,6 +239,7 @@ class TimetableCreateDialog(QWidget):
             # 과목별 색상 생성
             self.subject_colors = {}
             colors = self.generate_colors(len(self.subjects))
+            print(f"\n🎨 과목 색상 생성 시작 (총 {len(self.subjects)}개 과목)")
             
             for i, subject in enumerate(self.subjects):
                 # 과목명
@@ -272,7 +273,7 @@ class TimetableCreateDialog(QWidget):
                 self.subject_table.setItem(i, 6, color_item)
                 
                 # 디버깅: 색상 할당 확인
-                print(f"과목 색상 할당: {subject['code']} ({subject['name']}) → RGB({color.red()}, {color.green()}, {color.blue()})")
+                print(f"  ✓ {subject['code']}: {subject['name'][:15]:15} → RGB({color.red():3}, {color.green():3}, {color.blue():3})")
                 
         except Exception as e:
             QMessageBox.critical(self, "오류", f"과목 로드 실패: {str(e)}")
@@ -476,6 +477,10 @@ class TimetableCreateDialog(QWidget):
             am_subj = self._make_subject_entry(subject, am_hours) if am_hours > 0 else None
             remaining[code] -= am_hours
             
+            # 디버깅: 과목 코드 확인
+            if am_subj:
+                print(f"📅 {current_date.strftime('%m-%d')} AM: {am_subj['code']} ({am_subj['name']}) - {am_hours}h")
+            
             # PM 시간 배정 (4시간)
             # 1) 오전 과목이 끝났으면 (남은 시수 0) → 다른 과목 배정
             # 2) 오전 과목이 계속되면 → 같은 과목 배정
@@ -507,6 +512,9 @@ class TimetableCreateDialog(QWidget):
             if pm_subject and pm_hours > 0:
                 pm_subj = self._make_subject_entry(pm_subject, pm_hours)
                 remaining[pm_subject['code']] -= pm_hours
+                
+                # 디버깅: 과목 코드 확인
+                print(f"📅 {current_date.strftime('%m-%d')} PM: {pm_subj['code']} ({pm_subj['name']}) - {pm_hours}h")
             
             day_count += 1
             
@@ -566,6 +574,11 @@ class TimetableCreateDialog(QWidget):
     
     def display_timetable(self, timetable):
         """시간표 테이블에 표시"""
+        print(f"\n📊 시간표 표시 시작 (총 {len(timetable)}일)")
+        print(f"🎨 사용 가능한 과목 색상: {len(self.subject_colors)}개")
+        if self.subject_colors:
+            print(f"   색상 딕셔너리 키: {list(self.subject_colors.keys())}")
+        
         self.timetable_table.setRowCount(len(timetable))
         
         # 주차별 파스텔 오렌지 색상 팔레트
@@ -670,7 +683,9 @@ class TimetableCreateDialog(QWidget):
                 am_item.setTextAlignment(Qt.AlignCenter)
                 self.timetable_table.setItem(i, 2, am_item)
             else:
-                self.timetable_table.setItem(i, 2, QTableWidgetItem("-"))
+                empty_am = QTableWidgetItem("-")
+                empty_am.setTextAlignment(Qt.AlignCenter)
+                self.timetable_table.setItem(i, 2, empty_am)
             
             # 오후 과목 표시
             if pm_subject and pm_subject.get('code'):
@@ -707,7 +722,9 @@ class TimetableCreateDialog(QWidget):
                 pm_item.setTextAlignment(Qt.AlignCenter)
                 self.timetable_table.setItem(i, 3, pm_item)
             else:
-                self.timetable_table.setItem(i, 3, QTableWidgetItem("-"))
+                empty_pm = QTableWidgetItem("-")
+                empty_pm.setTextAlignment(Qt.AlignCenter)
+                self.timetable_table.setItem(i, 3, empty_pm)
             
             # 주강사 (오전 과목 기준, 오전/오후 다르면 둘 다 표시)
             if am_subject and pm_subject:
