@@ -424,6 +424,12 @@ class CourseDialog(QWidget):
         internship_start = self.get_next_workday(internship_start, holidays)
         internship_end = self.calculate_end_date(internship_start, internship_days, holidays)
         
+        # 계산된 날짜를 인스턴스 변수에 저장
+        self.calculated_lecture_end = lecture_end
+        self.calculated_project_end = project_end
+        self.calculated_internship_end = internship_end
+        self.calculated_final_end = internship_end
+        
         # 일수 라벨 업데이트 (종료일 포함)
         self.lecture_days_label.setText(f"약 {lecture_days}일 ({lecture_end.strftime('%m-%d')} 까지)")
         self.project_days_label.setText(f"약 {project_days}일 ({project_end.strftime('%m-%d')} 까지)")
@@ -632,17 +638,22 @@ class CourseDialog(QWidget):
             project_days = (result['project_hours'] + 7) // 8
             internship_days = (result['internship_hours'] + 7) // 8
             
+            # 저장된 날짜를 인스턴스 변수에 로드
             if result.get('lecture_end_date') and result['lecture_end_date'] is not None:
+                self.calculated_lecture_end = result['lecture_end_date']
                 self.lecture_days_label.setText(f"약 {lecture_days}일 ({result['lecture_end_date'].strftime('%m-%d')} 까지)")
             else:
                 self.lecture_days_label.setText(f"약 {lecture_days}일")
                 
             if result.get('project_end_date') and result['project_end_date'] is not None:
+                self.calculated_project_end = result['project_end_date']
                 self.project_days_label.setText(f"약 {project_days}일 ({result['project_end_date'].strftime('%m-%d')} 까지)")
             else:
                 self.project_days_label.setText(f"약 {project_days}일")
                 
             if result.get('internship_end_date') and result['internship_end_date'] is not None:
+                self.calculated_internship_end = result['internship_end_date']
+                self.calculated_final_end = result['internship_end_date']
                 self.internship_days_label.setText(f"약 {internship_days}일 ({result['internship_end_date'].strftime('%m-%d')} 까지)")
             else:
                 self.internship_days_label.setText(f"약 {internship_days}일")
@@ -691,14 +702,16 @@ class CourseDialog(QWidget):
         
         # 날짜 정보
         start_date = self.start_date.date().toPyDate()
-        lecture_end = self.lecture_end_date.text()
-        project_end = self.project_end_date.text()
-        internship_end = self.internship_end_date.text()
-        final_end = self.final_end_date.text()
         
-        if not lecture_end or not project_end or not internship_end:
+        # 계산된 날짜 확인
+        if not hasattr(self, 'calculated_lecture_end') or not hasattr(self, 'calculated_project_end') or not hasattr(self, 'calculated_internship_end'):
             QMessageBox.warning(self, "경고", "일정 자동계산 버튼을 클릭하여 일정을 먼저 계산하세요.")
             return
+        
+        lecture_end = self.calculated_lecture_end.strftime("%Y-%m-%d")
+        project_end = self.calculated_project_end.strftime("%Y-%m-%d")
+        internship_end = self.calculated_internship_end.strftime("%Y-%m-%d")
+        final_end = self.calculated_final_end.strftime("%Y-%m-%d")
         
         lecture_hrs = self.lecture_hours.value()
         project_hrs = self.project_hours.value()
@@ -746,14 +759,16 @@ class CourseDialog(QWidget):
         
         # 날짜 정보
         start_date = self.start_date.date().toPyDate()
-        lecture_end = self.lecture_end_date.text()
-        project_end = self.project_end_date.text()
-        internship_end = self.internship_end_date.text()
-        final_end = self.final_end_date.text()
         
-        if not lecture_end or not project_end or not internship_end:
+        # 계산된 날짜 확인
+        if not hasattr(self, 'calculated_lecture_end') or not hasattr(self, 'calculated_project_end') or not hasattr(self, 'calculated_internship_end'):
             QMessageBox.warning(self, "경고", "일정 자동계산 버튼을 클릭하여 일정을 먼저 계산하세요.")
             return
+        
+        lecture_end = self.calculated_lecture_end.strftime("%Y-%m-%d")
+        project_end = self.calculated_project_end.strftime("%Y-%m-%d")
+        internship_end = self.calculated_internship_end.strftime("%Y-%m-%d")
+        final_end = self.calculated_final_end.strftime("%Y-%m-%d")
         
         lecture_hrs = self.lecture_hours.value()
         project_hrs = self.project_hours.value()
