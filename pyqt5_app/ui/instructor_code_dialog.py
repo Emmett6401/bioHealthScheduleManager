@@ -50,7 +50,7 @@ class InstructorCodeDialog(QWidget):
         # 구분
         form_layout.addWidget(QLabel("구분:"))
         self.type_combo = QComboBox()
-        self.type_combo.addItems(["1. 주강사", "2. 보조강사", "3. 멘토"])
+        self.type_combo.addItems(["1. 주강사", "2. 보조강사", "3. 멘토", "4. 기타", "5. 외부강사", "6. 인턴", "7. 방문강사", "8. 온라인강사", "9. 특별강사", "10. 객원강사"])
         form_layout.addWidget(self.type_combo)
         
         # 버튼
