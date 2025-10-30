@@ -50,7 +50,7 @@ class InstructorCodeDialog(QWidget):
         # 구분
         form_layout.addWidget(QLabel("구분:"))
         self.type_combo = QComboBox()
-        self.type_combo.addItems(["1. 주강사", "2. 보조강사", "3. 멘토"])
+        self.type_combo.addItems(["1. 주강사", "2. 보조강사", "3. 멘토", "4. 행정지원", "5. 외부강사", "6. 인턴", "7. 방문강사", "8. 온라인강사", "9. 특별강사", "10. 객원강사", "11. 수석강사", "12. 조교"])
         form_layout.addWidget(self.type_combo)
         
         # 버튼
@@ -98,7 +98,21 @@ class InstructorCodeDialog(QWidget):
                 row_position = self.table.rowCount()
                 self.table.insertRow(row_position)
                 
-                type_text = {"1": "1. 주강사", "2": "2. 보조강사", "3": "3. 멘토"}
+                # 12가지 강사 구분 매핑
+                type_text = {
+                    "1": "1. 주강사", 
+                    "2": "2. 보조강사", 
+                    "3": "3. 멘토",
+                    "4": "4. 행정지원",
+                    "5": "5. 외부강사",
+                    "6": "6. 인턴",
+                    "7": "7. 방문강사",
+                    "8": "8. 온라인강사",
+                    "9": "9. 특별강사",
+                    "10": "10. 객원강사",
+                    "11": "11. 수석강사",
+                    "12": "12. 조교"
+                }
                 
                 self.table.setItem(row_position, 0, QTableWidgetItem(row['code']))
                 self.table.setItem(row_position, 1, QTableWidgetItem(row['name']))
