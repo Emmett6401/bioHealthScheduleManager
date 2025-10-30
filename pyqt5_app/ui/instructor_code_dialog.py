@@ -98,7 +98,8 @@ class InstructorCodeDialog(QWidget):
                 row_position = self.table.rowCount()
                 self.table.insertRow(row_position)
                 
-                # 12가지 강사 구분 매핑
+                # type은 이제 전체 텍스트로 저장됨 (예: "1. 주강사")
+                # 하지만 기존 데이터는 숫자만 있을 수 있으므로 매핑 유지
                 type_text = {
                     "1": "1. 주강사", 
                     "2": "2. 보조강사", 
@@ -116,7 +117,9 @@ class InstructorCodeDialog(QWidget):
                 
                 self.table.setItem(row_position, 0, QTableWidgetItem(row['code']))
                 self.table.setItem(row_position, 1, QTableWidgetItem(row['name']))
-                self.table.setItem(row_position, 2, QTableWidgetItem(type_text.get(row['type'], row['type'])))
+                # 이미 전체 텍스트면 그대로, 숫자만 있으면 변환
+                display_type = type_text.get(row['type'], row['type'])
+                self.table.setItem(row_position, 2, QTableWidgetItem(display_type))
                 
         except Exception as e:
             QMessageBox.critical(self, "오류", f"데이터 로드 실패: {str(e)}")
@@ -143,7 +146,8 @@ class InstructorCodeDialog(QWidget):
             QMessageBox.warning(self, "경고", "강사명칭을 입력하세요.")
             return
         
-        type_value = str(self.type_combo.currentIndex() + 1)
+        # 전체 텍스트를 저장 (예: "1. 주강사")
+        type_value = self.type_combo.currentText()
         
         try:
             # 다음 코드 생성
@@ -171,7 +175,8 @@ class InstructorCodeDialog(QWidget):
             QMessageBox.warning(self, "경고", "코드와 강사명칭을 입력하세요.")
             return
         
-        type_value = str(self.type_combo.currentIndex() + 1)
+        # 전체 텍스트를 저장 (예: "1. 주강사")
+        type_value = self.type_combo.currentText()
         
         try:
             query = """
