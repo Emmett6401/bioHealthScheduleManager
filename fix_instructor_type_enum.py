@@ -23,9 +23,9 @@ def fix_instructor_type_enum():
     db = DatabaseManager()
     
     try:
-        # ENUM 타입 수정 쿼리
+        # ENUM 타입 수정 쿼리 (올바른 테이블: instructor_codes)
         alter_query = """
-        ALTER TABLE instructors 
+        ALTER TABLE instructor_codes 
         MODIFY COLUMN type ENUM(
             '1. 주강사',
             '2. 보조강사', 
@@ -39,16 +39,16 @@ def fix_instructor_type_enum():
             '10. 객원강사',
             '11. 수석강사',
             '12. 조교'
-        ) DEFAULT '1. 주강사'
+        ) NOT NULL COMMENT '강사 구분' DEFAULT '1. 주강사'
         """
         
-        print("\n📝 ENUM 타입 수정 중...")
+        print("\n📝 instructor_codes 테이블 ENUM 타입 수정 중...")
         db.execute_query(alter_query)
         print("✅ ENUM 타입 수정 완료!")
         
         # 테이블 구조 확인
         print("\n📊 현재 테이블 구조:")
-        result = db.execute_query("SHOW CREATE TABLE instructors", fetch=True)
+        result = db.execute_query("SHOW CREATE TABLE instructor_codes", fetch=True)
         if result:
             print(result[0][1])
         
